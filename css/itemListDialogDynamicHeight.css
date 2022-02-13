@@ -1,0 +1,8 @@
+<style>
+
+.modal-dialog>div>section,.modal-dialog .modal-content {
+    min-height: 20%;
+    max-height: 80%!important;
+    height: auto!important;
+}
+</style>

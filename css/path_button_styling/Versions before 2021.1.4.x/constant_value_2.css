@@ -1,0 +1,25 @@
+<style>
+/* Yellow path style  */
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 50);"]
+ { color: black!important; background-color: rgba(255, 224, 0, 0.75)!important;font-size:larger!important; border-radius: 8px!important;}
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 50);"]:hover
+ { background-color: rgba(255, 224, 0, 1)!important; }
+
+/* Black path style  */
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 60);"]
+ { color: white!important; background-color: rgba(0, 0, 0, 0.75)!important;font-size:larger!important; border-radius: 8px!important;}
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 60);"]:hover
+ { background-color: rgba(0, 0, 0, 1)!important; }
+ 
+/* Purple path style  */
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 70);"]
+ { color: white!important; background-color: rgba(209, 171, 229, 0.75)!important;font-size:larger!important; border-radius: 8px!important;}
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 70);"]:hover
+ { background-color: rgba(209, 171, 229,  1)!important; }
+ 
+/* Orange path style  */
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 80);"]
+ { color: black!important; background-color: rgba(255, 164, 53, 0.75)!important;font-size:larger!important; border-radius: 8px!important;}
+ input[class*="pathPanelButton"][style="background-color: rgb(0, 0, 80);"]:hover
+ { background-color: rgba(255, 164, 53, 1)!important; }
+</style>
