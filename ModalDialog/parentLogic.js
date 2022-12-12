@@ -98,7 +98,7 @@ ccls.modal.dialog.closeFunctions.setGuidForField = function (parameters, targetF
 // Example which needs to be added to the html field
 // Function
 //ccls.modal.dialog.closeFunctions.setNewCustomer= function (parameters) {    
-//  ccls.modal.dialog.closeFunctions.setGuidForField(parameters,'#{FLD:4942}#');
+//  ccls.modal.dialog.closeFunctions.setGuidForField(parameters,'FIELD');
 //}
 // The startWorkflow function can be called with the parameter closeFunction set to ccls.modal.dialog.closeFunctions.setNewCustomer
 
