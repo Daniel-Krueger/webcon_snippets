@@ -82,6 +82,22 @@ ccls.modal.dialog.closeFunctions.setInstanceIdForField = function (parameters, t
 }
 
 // internal function for setting the field, can be called from a custom function
+// can be used to populate a picker which uses the instance id as id of the picker value of an item list
+// if row is not provided or -1 the last row will be used.
+ccls.modal.dialog.closeFunctions.setInstanceIdForItemListColumn  = function (parameters, targetItemList, targetColumn, row) {
+  if (parameters == null) {
+    console.log("No parameters have been provided");
+    return;
+  }
+  if (typeof (row) === "undefined" || row === -1) {
+    SetSubValue(targetItemList, SubelementCountRows(targetItemList), targetColumn, parameters.instanceId);
+  }
+  else {
+    SetSubValue(targetItemList, row, targetColumn, parameters.instanceId);
+  }
+}
+
+// internal function for setting the field, can be called from a custom function
 // can be used to populate a picker which uses the Guid of an instance, for example dictionaries
 // The Guid will be retrieved by getting the model of the provided instance id.
 ccls.modal.dialog.closeFunctions.setGuidForField = function (parameters, targetField) {
@@ -93,8 +109,29 @@ ccls.modal.dialog.closeFunctions.setGuidForField = function (parameters, targetF
     ccls.modal.dialog.startDebugger();
     SetValue(targetField, data.liteData.liteModel.formInfo.guid);
   });
-
 }
+
+// internal function for setting a column in an item list
+// can be used to populate a picker which uses the Guid of an instance, for example dictionaries
+// if row is not provided or -1 the last row will be used.
+// The Guid will be retrieved by getting the model of the provided instance id.
+ccls.modal.dialog.closeFunctions.setGuidForItemListColumn = function (parameters, targetItemList, targetColumn, row) {
+  if (parameters == null) {
+    console.log("No parameters have been provided");
+    return;
+  }
+  $.getJSON(`/api/nav/db/${parameters.dbId}/element/${parameters.instanceId}/desktop`, (data) => {
+    ccls.modal.dialog.startDebugger();
+    if (typeof (row) === "undefined" || row === -1) {
+      SetSubValue(targetItemList, SubelementCountRows(targetItemList), targetColumn, data.liteData.liteModel.formInfo.guid);
+    }
+    else {
+      SetSubValue(targetItemList, row, targetColumn, data.liteData.liteModel.formInfo.guid);
+    }
+  });
+}
+
+
 // Example which needs to be added to the html field
 // Function
 //ccls.modal.dialog.closeFunctions.setNewCustomer= function (parameters) {    
@@ -111,7 +148,7 @@ ccls.modal.dialog.close = function (parameters) {
   // Will trigger reload of any data tables.
   $("button", $(".reload-button-container")).click();
   $("span", $(".reload-button-container")).click()
-  if (typeof (ccls.modal.dialog.customClosingFunction) == 'function' && typeof(parameters) != "undefined") {
+  if (typeof (ccls.modal.dialog.customClosingFunction) == 'function' && typeof (parameters) != "undefined") {
     ccls.modal.dialog.customClosingFunction(parameters);
   }
 };
@@ -246,7 +283,7 @@ ccls.modal.dialog.toggleExpand = function () {
 };
 
 ccls.modal.dialog.replaceWindow = function () {
-  ccls.modal.dialog.startDebugger();  
+  ccls.modal.dialog.startDebugger();
   if (!ccls.utils.continueAlsoPageIsDirty()) return;
   document.getElementById("cclsModaliframe").contentWindow.postMessage(new Message("sendURL", null));
 };
@@ -352,3 +389,4 @@ window.addEventListener("message", (e) => {
 
 //the last line of a script must not be a comment
 console.log("modal dialog parent logic executed");
+
