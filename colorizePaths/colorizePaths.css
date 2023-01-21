@@ -1,0 +1,177 @@
+/* COLORIZE PATHS START LIGHT*/
+.ccls_greyPathButtonLightTheme {
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_greyPathButtonLightTheme:hover {}
+
+.ccls_bluePathButtonLightTheme {
+    color: white !important;
+    background-color: rgba(7, 150, 221, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_bluePathButtonLightTheme:hover {
+    background-color: rgba(7, 150, 221, 1) !important;
+}
+
+.ccls_redPathButtonLightTheme {
+    color: #900b0b !important;
+    background-color: white !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+    box-shadow: inset 0px 0px 0px 2px #900b0b;
+}
+
+.ccls_redPathButtonLightTheme:hover {
+    background-color: lightgrey !important
+}
+
+.ccls_orangePathButtonLightTheme {
+    color: black !important;
+    background-color: rgba(255, 164, 53, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_orangePathButtonLightTheme:hover {
+    background-color: rgba(255, 164, 53, 1) !important;
+}
+
+.ccls_yellowPathButtonLightTheme {
+    color: black !important;
+    background-color: rgba(255, 224, 0, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_yellowPathButtonLightTheme:hover {
+    background-color: rgba(255, 224, 0, 1) !important;
+}
+
+.ccls_greenPathButtonLightTheme {
+    color: black !important;
+    background-color: rgba(154, 205, 50, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_greenPathButtonLightTheme:hover {
+    background-color: rgba(154, 205, 50, 1) !important;
+}
+
+.ccls_purplePathButtonLightTheme {
+    color: black !important;
+    background-color: rgba(209, 171, 229, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_purplePathButtonLightTheme:hover {
+    background-color: rgba(209, 171, 229, 1) !important;
+}
+
+.ccls_blackPathButtonLightTheme {
+    color: white !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_blackPathButtonLightTheme:hover {
+    background-color: rgba(0, 0, 0, 1) !important;
+}
+
+
+/* COLORIZE PATHS END LIGHT*/
+
+/* COLORIZE PATHS START DARK*/
+.ccls_greyPathButtonDarkTheme {
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_greyPathButtonDarkTheme:hover {}
+
+.ccls_bluePathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(7, 150, 221, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_bluePathButtonDarkTheme:hover {
+    background-color: rgba(7, 150, 221, 1) !important;
+}
+
+.ccls_redPathButtonDarkTheme {
+    color: #900b0b !important;
+    background-color: white !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+    box-shadow: inset 0px 0px 0px 2px #900b0b;
+}
+
+.ccls_redPathButtonDarkTheme:hover {
+    background-color: lightgrey !important
+}
+
+.ccls_orangePathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(255, 164, 53, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_orangePathButtonDarkTheme:hover {
+    background-color: rgba(255, 164, 53, 1) !important;
+}
+
+.ccls_yellowPathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(255, 224, 0, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_yellowPathButtonDarkTheme:hover {
+    background-color: rgba(255, 224, 0, 1) !important;
+}
+
+.ccls_greenPathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(154, 205, 50, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_greenPathButtonDarkTheme:hover {
+    background-color: rgba(154, 205, 50, 1) !important;
+}
+
+.ccls_purplePathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(209, 171, 229, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_purplePathButtonDarkTheme:hover {
+    background-color: rgba(209, 171, 229, 1) !important;
+}
+
+.ccls_blackPathButtonDarkTheme {
+    color: white !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    font-size: larger !important;
+    border-radius: 8px !important;
+}
+
+.ccls_blackPathButtonDarkTheme:hover {
+    background-color: rgba(0, 0, 0, 1) !important;
+}
+
+
+/* COLORIZE PATHS END DARK*/
