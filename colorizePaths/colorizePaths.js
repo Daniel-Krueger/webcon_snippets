@@ -4,6 +4,9 @@ ccls.colorizePaths = {};
 ccls.colorizePaths.webconData = "";
 ccls.colorizePaths.dummyData =
     '[{"id":222,"name":"Grey","color":"default"},{"id":223,"name":"Blue","color":"#FF0093DC"},{"id":224,"name":"Red","color":"#FFDC002E"},{"id":225,"name":"orange multi en-US","color":"#FFFFA500"},{"id":226,"name":"Yellow en only","color":"#FFFFFF00"},{"id":227,"name":"Green en-GB","color":"#FF9ACD32"},{"id":228,"name":"Purple en-US","color":"#FFD1ABE5"},{"id":229,"name":"Black","color":"#FF000000"},]';
+    
+ccls.colorizePaths.setDummyData = function () { ccls.colorizePaths.webconData = ccls.colorizePaths.dummyData; }
+
 ccls.colorizePaths.documentation = {
     "default": `
 Black: Used by the system
@@ -16,17 +19,26 @@ Yellow: Workflow will be postponed/scheduled, you will get an reminder on the sc
 Grey: Everything else    
         `
     , "de": `
-Schwarz: Wird vom System verwendet
 Blau: wird etwas tun, aber es wird den Schritt nicht verlassen und Sie werden immer noch verantwortlich sein
-Grün: Positive Aktion, wird den Arbeitsablauf vorantreiben    
-Orange: Schickt den Arbeitsablauf zurück zum vorherigen Schritt, um weiteres Feedback zu erhalten
-Lila: Nur für den Systemadministrator zugänglich
-Rot: Negative Aktion führt zum Abbruch des Arbeitsablaufs
 Gelb: Workflow wird verschoben/ geplant, Sie erhalten eine Erinnerung an den geplanten Termin
 Grau: Alles andere
+Grün: Positive Aktion, wird den Arbeitsablauf vorantreiben    
+Lila: Nur für den Systemadministrator zugänglich
+Orange: Schickt den Arbeitsablauf zurück zum vorherigen Schritt, um weiteres Feedback zu erhalten
+Rot: Negative Aktion führt zum Abbruch des Arbeitsablaufs
+Schwarz: Wird vom System verwendet
+    `
+    , "pl": `
+Czarny: Używany przez system
+Czerwony: Negatywna akcja powoduje przerwanie/anulowanie przepływu pracy
+Fioletowy: Dostępne tylko dla administratora systemu
+Niebieski: zrobi coś, ale nie opuści kroku i nadal będziesz odpowiedzialny
+Pomarańczowy: Wysyła przepływ pracy z powrotem do poprzedniego kroku, aby uzyskać więcej informacji zwrotnych        
+Szary: Wszystko inne 
+Zielony: Pozytywne działanie, posunie naprzód przepływ pracy        
+Żółty: Przepływ zostanie odłożony/przeprogramowany, użytkownik otrzyma przypomnienie w zaplanowanym terminie
     `
 }
-ccls.colorizePaths.setDummyData = function () { ccls.colorizePaths.webconData = ccls.colorizePaths.dummyData; }
 ccls.colorizePaths.colorize = function (debug, retryCounter) {
     if (debug == true) debugger;
     if (typeof (retryCounter) === "undefined") retryCounter = 0;
