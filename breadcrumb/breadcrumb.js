@@ -1,19 +1,15 @@
 {
   /* 
   Example breadcrumb loading
-  <div id="cclsBreadCrumbContainer" class="ccls-Breadcrumb" style="border-bottom:1px solid darkgray;margin-bottom:5px;display:none">
-    <ul class="ccls-Breadcrumb-list" id="cclsBreadcrumb">
-      <li class="ccls-Breadcrumb-listItem">
-        <div class="ccls-Breadcrumb-itemLeave">
-        <span style="font-size:12px;">FORMTYPE_NAME_BY_DEFAULT_NOT_TRANSLATED</span><br />GLOBAL_TITLE_FIELD</div>
-      </li>
-    </ul>
+  <div id="cclsBreadCrumbContainer" class="ccls-Breadcrumb" style="display:none">
   </div>
-  
+  <span id="cclsTitleField">TITLEFIELD</span>
+
   <script>
   InvokeRule(BREADCRUMB_FORM_RULE)
   ccls.breadcrumb.webconData = 'GET_BREADCRUMB_DATA_RULE'
   //ccls.breadcrumb.textOnly = true;
+  //ccls.breadcrumb.showHome = false;
   ccls.breadcrumb.createBreadcrumb();
   </script>
   */
@@ -117,7 +113,7 @@ ccls.breadcrumb.createBreadcrumb = function () {
 
     `<ul class="ccls-Breadcrumb-list" id="cclsBreadcrumb">
         <li class="ccls-Breadcrumb-listItem ccls-Breadcrumb-Home" id="ccls-Breadcrumb-Home" ${ccls.breadcrumb.showHome ? "" : "style='display:none'"}>
-          <a class="ccls-Breadcrumb-itemLink" title="Seite der Anwendung" href="${homeUrl} ">
+          <a class="ccls-Breadcrumb-itemLink" title="${title} " href="${homeUrl}" style="text-align:center">
             <span class="ccls-breadcrumb-FormType">${ccls.breadcrumb.homeLabel}</span><br />
             <i class="ms-Icon ms-Icon--Home ccls-breadcrumb-HomeIcon " ></i>
           </a>          
