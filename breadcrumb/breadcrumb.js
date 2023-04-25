@@ -113,7 +113,7 @@ ccls.breadcrumb.createBreadcrumb = function () {
 
     `<ul class="ccls-Breadcrumb-list" id="cclsBreadcrumb">
         <li class="ccls-Breadcrumb-listItem ccls-Breadcrumb-Home" id="ccls-Breadcrumb-Home" ${ccls.breadcrumb.showHome ? "" : "style='display:none'"}>
-          <a class="ccls-Breadcrumb-itemLink" title="${title} " href="${homeUrl}" style="text-align:center">
+          <a class="ccls-Breadcrumb-itemLink" title="${title}" href="${homeUrl}" style="text-align:center">
             <span class="ccls-breadcrumb-FormType">${ccls.breadcrumb.homeLabel}</span><br />
             <i class="ms-Icon ms-Icon--Home ccls-breadcrumb-HomeIcon " ></i>
           </a>          
@@ -170,19 +170,20 @@ ccls.breadcrumb.createBreadcrumb = function () {
       `);
     }
 
-    // add leave element and using title field
-    breadcrumbList.insertAdjacentHTML("beforeend",
-      `
-        <li class="ccls-Breadcrumb-listItem" >
-          <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
-          <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
-          </div>
-        </li>
-      `);
-    let leaveElement = document.getElementById("cclsBreadcrumbItemLeave");
-    let titleField = document.getElementById("cclsTitleField");
-    leaveElement.insertAdjacentElement("beforeend", titleField);
+   
   }
+   // add leave element and using title field
+   breadcrumbList.insertAdjacentHTML("beforeend",
+   `
+     <li class="ccls-Breadcrumb-listItem" >
+       <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
+       <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
+       </div>
+     </li>
+   `);
+ let leaveElement = document.getElementById("cclsBreadcrumbItemLeave");
+ let titleField = document.getElementById("cclsTitleField");
+ leaveElement.insertAdjacentElement("beforeend", titleField);
 };
 //#endregion
 
