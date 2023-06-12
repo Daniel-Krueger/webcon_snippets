@@ -26,20 +26,11 @@ ccls.modal.child.startDebugger = function () {
 }
 
 //#region setup tracking navigation changes, to check whether the child dialog should be closed.
+
+
 // Requires "Show confirmation" on the path which should close the dialog and that the url is called within embeded mode
 ccls.modal.trackNavigation = ccls.modal.trackNavigation || {};
-ccls.modal.trackNavigation.lastUrl = location.href;
-ccls.modal.trackNavigation.mutationObserver = new MutationObserver(() => {
-  const url = location.href;
-  if (url !== ccls.modal.trackNavigation.lastUrl) {
-    lastUrl = url;
-    ccls.modal.trackNavigation.onUrlChange();
-  }
-});
-ccls.modal.trackNavigation.mutationObserver.observe(document, {
-  subtree: true,
-  childList: true,
-});
+
 ccls.modal.trackNavigation.onUrlChange = function () {
   ccls.modal.child.startDebugger();
   if (document.location.href.contains("element/confirm")) {
@@ -53,8 +44,27 @@ ccls.modal.trackNavigation.onUrlChange = function () {
       // The timeout of 400 will allow the user to see, that his actions have been processed.
       parent.ccls.modal.dialog.close({ "dbId": dbId, "instanceId": instanceId })
     }, 400);
+  } else {    
+    ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange,250);
   }
 };
+/*
+// Stopped working correctly in iframe... with Edge Version 111.0.1661.44 
+ccls.modal.trackNavigation.lastUrl = location.href;
+ccls.modal.trackNavigation.mutationObserver = new MutationObserver(() => {
+  const url = location.href;
+  if (url !== ccls.modal.trackNavigation.lastUrl) {
+    lastUrl = url;
+    ccls.modal.trackNavigation.onUrlChange();
+  }
+});
+ccls.modal.trackNavigation.mutationObserver.observe(document, {
+  subtree: true,
+  childList: true,
+});
+*/
+// Substiture for mutationsobserver
+ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange,250);
 //#endregion
 
 
@@ -162,7 +172,7 @@ class Message {
 }
 window.addEventListener("message", (e) => {
   let data = e.data;
-  ccls.modal.child.startDebugger();
+  //ccls.modal.child.startDebugger();
   if (data.type == "sendURL") {
     let url;
     if (document.location.href.contains("start/wf")) {

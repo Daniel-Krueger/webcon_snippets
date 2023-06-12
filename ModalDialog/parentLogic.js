@@ -84,7 +84,7 @@ ccls.modal.dialog.closeFunctions.setInstanceIdForField = function (parameters, t
 // internal function for setting the field, can be called from a custom function
 // can be used to populate a picker which uses the instance id as id of the picker value of an item list
 // if row is not provided or -1 the last row will be used.
-ccls.modal.dialog.closeFunctions.setInstanceIdForItemListColumn  = function (parameters, targetItemList, targetColumn, row) {
+ccls.modal.dialog.closeFunctions.setInstanceIdForItemListColumn = function (parameters, targetItemList, targetColumn, row) {
   if (parameters == null) {
     console.log("No parameters have been provided");
     return;
