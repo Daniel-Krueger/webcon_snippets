@@ -1,5 +1,5 @@
 // If this is not opened in modal, don't do anything
-if (!document.location.href.contains("isModal")) {
+if (document.location.href.indexOf("isModal") == -1) {
   return;
 }
 
@@ -26,14 +26,11 @@ ccls.modal.child.startDebugger = function () {
 }
 
 //#region setup tracking navigation changes, to check whether the child dialog should be closed.
-
-
 // Requires "Show confirmation" on the path which should close the dialog and that the url is called within embeded mode
 ccls.modal.trackNavigation = ccls.modal.trackNavigation || {};
-
 ccls.modal.trackNavigation.onUrlChange = function () {
   ccls.modal.child.startDebugger();
-  if (document.location.href.contains("element/confirm")) {
+  if (document.location.href.indexOf("element/confirm") > -1) {
 
     setTimeout(() => {
       // Passing the db and instance id of the created/modified element to the parent window.
@@ -44,27 +41,12 @@ ccls.modal.trackNavigation.onUrlChange = function () {
       // The timeout of 400 will allow the user to see, that his actions have been processed.
       parent.ccls.modal.dialog.close({ "dbId": dbId, "instanceId": instanceId })
     }, 400);
-  } else {    
-    ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange,250);
+  } else {
+    ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange, 250);
   }
 };
-/*
-// Stopped working correctly in iframe... with Edge Version 111.0.1661.44 
-ccls.modal.trackNavigation.lastUrl = location.href;
-ccls.modal.trackNavigation.mutationObserver = new MutationObserver(() => {
-  const url = location.href;
-  if (url !== ccls.modal.trackNavigation.lastUrl) {
-    lastUrl = url;
-    ccls.modal.trackNavigation.onUrlChange();
-  }
-});
-ccls.modal.trackNavigation.mutationObserver.observe(document, {
-  subtree: true,
-  childList: true,
-});
-*/
-// Substiture for mutationsobserver
-ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange,250);
+// Previously a  mutationsobserver was used, but it was not working correctly in newer edge versions
+ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackNavigation.onUrlChange, 250);
 //#endregion
 
 
@@ -73,6 +55,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
 
 
 (() => {
+  //ccls.modal.child.startDebugger();
   console.log("Styling the child dialog.")
   let cclsStyle = document.createElement('style');
   let darkThemes = [
@@ -110,7 +93,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
         display:none;
       }
       `;
-  document.getElementsByTagName('head')[0].appendChild(cclsStyle);
+    document.getElementsByTagName('head')[0].appendChild(cclsStyle);
 })();
 
 //#endregion
@@ -175,13 +158,26 @@ window.addEventListener("message", (e) => {
   //ccls.modal.child.startDebugger();
   if (data.type == "sendURL") {
     let url;
-    if (document.location.href.contains("start/wf")) {
+    if (document.location.href.indexOf("start/wf") > -1) {
       url = `/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}/start/wf/${ccls.utils.getIdFromUrl("wf")}/dt/${ccls.utils.getIdFromUrl("dt")}/form` + document.location.search;
     }
     else {
       url = `/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}/element/${GetPairID(G_WFELEM)}/form` + document.location.search;
     }
     window.parent.postMessage(new Message("fullUrl", { url: url }));
+  }
+  if (data.type == "parentClosing") {
+    // Release current document if in edit mode
+    if ((document.location.href.indexOf("start/wf") == -1) && (G_EDITMODE == true)) {
+      let options = {
+        method: 'GET',
+        headers: {}
+      };
+      // We don't need the result.
+      console.log("Execute release checkout for child.");
+      fetch(`/api/nav/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}/element/${GetPairID(G_WFELEM)}/checkout/release`, options).then();
+    }
+    window.parent.postMessage(new Message("childClosed", data.body));
   }
 });
 

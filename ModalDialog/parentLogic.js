@@ -11,7 +11,7 @@ ccls.utils.getIdFromUrl = function (precedingElement, url) {
   return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
 }
 ccls.utils.continueAlsoPageIsDirty = function () {
-  if (JSON.stringify(sessionStorage.getItem('WebconBPS_FormIsDirty')).contains("true")) {
+  if (JSON.stringify(sessionStorage.getItem('WebconBPS_FormIsDirty')).indexOf("true") > -1) {
     let confirmReloadMessage;
     switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
       case "de":
@@ -40,7 +40,7 @@ ccls.modal.dialog.startDebugger = function () {
   }
   return false;
 }
-
+ccls.modal.dialog.closingTimeout = null;
 //#region closing functions
 ccls.modal.dialog.closeFunctions = ccls.modal.dialog.closeFunctions || {};
 
@@ -68,7 +68,8 @@ ccls.modal.dialog.closeFunctions.displayAttachment = function (parameters) {
 // If you only need to reload datatables, there's no need to call this.
 ccls.modal.dialog.closeFunctions.executeRefreshButton = function (parameters) {
   if (!ccls.utils.continueAlsoPageIsDirtycontinueAlsoPageIsDirty) return;
-  $("#ReloadToolbarButton").click();
+  let reloadButton = $("#ReloadToolbarButton");
+  if (reloadButton.length == 1) { reloadButton[0].click() }
 }
 
 // internal function for setting the field, can be called from a custom function
@@ -143,16 +144,20 @@ ccls.modal.dialog.closeFunctions.setGuidForItemListColumn = function (parameters
 ccls.modal.dialog.customClosingFunction = undefined;
 ccls.modal.dialog.close = function (parameters) {
   ccls.modal.dialog.startDebugger();
+  document.getElementById("cclsModaliframe").contentWindow.postMessage(new Message("parentClosing", parameters));
+  ccls.modal.dialog.closingTimeout = setTimeout(ccls.modal.dialog.childClosed, 100, parameters)
+};
+ccls.modal.dialog.childClosed = function (parameters) {
+  clearTimeout(ccls.modal.dialog.closingTimeout);
   document.getElementById('cclsModal').style.display = "none";
   document.getElementById("cclsModaliframe").src = "about:blank";
   // Will trigger reload of any data tables.
-  $("button", $(".reload-button-container")).click();
-  $("span", $(".reload-button-container")).click()
+  $(".reload-button-container").find("button").each((index, element) => { element.click() });
+  $(".reload-button-container").find("span").each((index, element) => { element.click() });
   if (typeof (ccls.modal.dialog.customClosingFunction) == 'function' && typeof (parameters) != "undefined") {
     ccls.modal.dialog.customClosingFunction(parameters);
   }
-};
-
+}
 //#endregion
 
 //#region functions to display the dialog
@@ -176,7 +181,7 @@ ccls.modal.dialog.displayWorkflow = function (titleLabels, urlParametersAsString
     return;
   }
   let urlSearchParams = ccls.modal.dialog.getSearchParams(searchParametersAsString);
-  let url = `/embed/form/db/${urlParameters.dbId}/element/${urlParameters.elementId}/form?${urlSearchParams.toString()}`
+  let url = `/embed/form/db/${urlParameters.dbId}/element/${urlParameters.elementId}/form?${urlSearchParams.toString()}&theme=${window.initModel.userTheme}`
   ccls.modal.dialog.internalOpen(titleLabels, url, dimensions, closeFunction);
 }
 
@@ -211,7 +216,7 @@ ccls.modal.dialog.startWorkflow = function (titleLabels, urlParametersAsString, 
   urlSearchParams.append("com_id", urlParameters.businessEntity)
   if (typeof (urlParameters.parentInstance) == "number") urlSearchParams.append("parent_wfdid", urlParameters.parentInstance);
 
-  let url = `/embed/form/db/${urlParameters.dbId}/start/wf/${urlParameters.workflowId}/dt/${urlParameters.formTypeId}/form?${urlSearchParams.toString()}`
+  let url = `/embed/form/db/${urlParameters.dbId}/start/wf/${urlParameters.workflowId}/dt/${urlParameters.formTypeId}/form?${urlSearchParams.toString()}&theme=${window.initModel.userTheme}`
   ccls.modal.dialog.internalOpen(titleLabels, url, dimensions, closeFunction);
 };
 
@@ -353,15 +358,15 @@ ccls.modal.dialog.dialogHtml =
 
 `;
 
-$(document.body).append(ccls.modal.dialog.dialogHtml);
+$("#formContainer").append(ccls.modal.dialog.dialogHtml);
 // Add events
-$("#cclsCloseDialog > button").click(function () {
+$("#cclsCloseDialog > button").on('click', function () {
   ccls.modal.dialog.close();
 });
-$("#cclsExpandDialog > button").click(function () {
+$("#cclsExpandDialog > button").on('click', function () {
   ccls.modal.dialog.toggleExpand();
 });
-$("#cclsOpenInNewWindow > button").click(function () {
+$("#cclsOpenInNewWindow > button").on('click', function () {
   ccls.modal.dialog.replaceWindow();
 });
 //#endregion 
@@ -376,7 +381,7 @@ class Message {
 window.addEventListener("message", (e) => {
   let data = e.data;
   if (data.type == "fullUrl") {
-    if (data.body.url.contains("?")) {
+    if (data.body.url.indexOf("?") > -1) {
       data.body.url += '&'
     }
     else {
@@ -384,9 +389,12 @@ window.addEventListener("message", (e) => {
     }
     document.location.href = data.body.url + "returnUrl=" + encodeURIComponent(document.location.href);
   }
+  if (data.type == "childClosed") {
+    ccls.modal.dialog.childClosed(data.body)
+
+  }
 });
 //#endregion
 
 //the last line of a script must not be a comment
 console.log("modal dialog parent logic executed");
-

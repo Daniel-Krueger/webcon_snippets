@@ -1,5 +1,6 @@
 {
-  /* 
+  /* jQuery references have been removed
+
   Example breadcrumb loading
   <div id="cclsBreadCrumbContainer" class="ccls-Breadcrumb" style="display:none">
   </div>
@@ -24,32 +25,24 @@ ccls.utils = ccls.utils || {};
 // "db" would return 1 while wf would return 278
 // if no url is provided, document.location.href will be used.
 ccls.utils.getIdFromUrl = function (precedingElement, url) {
-  if (typeof url == "undefined") url = document.location.href;
+  if (typeof (url) == "undefined") url = document.location.href;
   return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
 };
 ccls.utils.continueAlsoPageIsDirty = function () {
-  if (
-    JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).contains(
-      "true"
-    )
-  ) {
+  if (JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).indexOf("true") > -1) {
     let confirmReloadMessage;
-    let homeLabel;
     switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
       case "de":
         confirmReloadMessage =
           "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
-        homeLabel = "Home";
         break;
       case "pl":
         confirmReloadMessage =
           "Wszystkie niezapisane dane wprowadzone na formularzu zostaną utracone. Czy chcesz kontynuować?";
-        homeLabel = "Home";
         break;
       default:
         confirmReloadMessage =
           "All unsaved entered data on the form will be lost. Do you wish to continue?";
-        homeLabel = "Home";
         break;
     }
 
@@ -61,7 +54,7 @@ ccls.utils.continueAlsoPageIsDirty = function () {
 
 ccls.breadcrumb = {};
 //#region breadcrumb logic
-//ccls.breadcrumb.regex = /element\/\d*\/form/i;
+//ccls.breadcrumb.regex = /element\/\d*\/form.*/i;
 ccls.breadcrumb.textOnly = false;
 ccls.breadcrumb.showHome = true;
 ccls.breadcrumb.homeLabel;
@@ -79,10 +72,23 @@ switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
 
 ccls.breadcrumb.navigateTo = function (appId, elementId) {
   if (!ccls.utils.continueAlsoPageIsDirty) return;
-
-  elemntToDisplay = `/db/${ccls.utils.getIdFromUrl('db')}/app/${appId}/element/${elementId}/form?returnurl=`
+  let dbId = ccls.utils.getIdFromUrl('db');
+  // We can not fetch the application from the URL because it's not part of the URL from the global task overview.
+  // Only the db and element are part of the URL /tasks/db/3/element/2758/form
+  let currentAppId = initialModel.formInfo.applicationId;
+  let currentElementId = ccls.utils.getIdFromUrl('element');
+  // Release current document if in edit mode
+  if (G_EDITMODE == true) {
+    let options = {
+      method: 'GET',
+      headers: {}
+    };
+    // We don't need the result.
+    fetch(`/api/nav/db/${dbId}/app/${currentAppId}/element/${currentElementId}/checkout/release`, options).then();
+  }
+  elemntToDisplay = `/db/${dbId}/app/${appId}/element/${elementId}/form?returnurl=`
   document.location.href =
-    elemntToDisplay + encodeURIComponent(document.location.href);
+    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form` + document.location.search);
 };
 ccls.breadcrumb.webconData = "";
 // ccls.breadcrumb.webconData =
@@ -92,7 +98,8 @@ ccls.breadcrumb.createBreadcrumb = function () {
     debugger;
   }
   // No breadcrumb when form is displayed in  embeded or preview mode
-  if (document.location.toString().contains("/embed/") || document.location.toString().contains("insidebar=true")) {
+  if (document.location.toString().indexOf("/embed/") > -1 || document.location.toString().indexOf("insidebar=true") > -1) {
+    document.getElementById("cclsTitleField").style.display = "none";
     return;
   }
 
@@ -113,7 +120,7 @@ ccls.breadcrumb.createBreadcrumb = function () {
 
     `<ul class="ccls-Breadcrumb-list" id="cclsBreadcrumb">
         <li class="ccls-Breadcrumb-listItem ccls-Breadcrumb-Home" id="ccls-Breadcrumb-Home" ${ccls.breadcrumb.showHome ? "" : "style='display:none'"}>
-          <a class="ccls-Breadcrumb-itemLink" title="${title}" href="${homeUrl}" style="text-align:center">
+          <a class="ccls-Breadcrumb-itemLink" title="${title} " href="${homeUrl}" style="text-align:center">
             <span class="ccls-breadcrumb-FormType">${ccls.breadcrumb.homeLabel}</span><br />
             <i class="ms-Icon ms-Icon--Home ccls-breadcrumb-HomeIcon " ></i>
           </a>          
@@ -141,17 +148,18 @@ ccls.breadcrumb.createBreadcrumb = function () {
         if (itemTitle == null || itemTitle == "") {
           itemTitle = item.formType
         }
-        if (this.textOnly) {
-          breadcrumbDropDownContent += `<span>${item.signature}: ${itemTitle}</span>`;
-        } else {
-          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})">${item.signature}: ${itemTitle}</a>`;
-        }
         
+        if (this.textOnly) {
+          breadcrumbDropDownContent += `<span>${item.signature+':'+ itemTitle}</span>`;
+        } else {
+          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})">${item.signature+'('+item.id+')'+':'+ itemTitle}</a>`;
+        }
+
         let breadcrumbItem;
         if (this.textOnly) {
-          breadcrumbItem = `<div class="ccls-Breadcrumb-itemLeave" title="${item.signature}: ${itemTitle}"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</div>`;
+          breadcrumbItem = `<div class="ccls-Breadcrumb-itemLeave" title="${item.signature+':'+ itemTitle}"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</div>`;
         } else {
-          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature}: ${itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
+          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature+'('+item.id+')'+':'+ itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
         }
         breadcrumbItem += '<i class="ccls-Breadcrumb-chevron ms-Icon ms-Icon--ChevronRight"></i>';
         dummy.innerHTML = breadcrumbItem;
@@ -169,21 +177,19 @@ ccls.breadcrumb.createBreadcrumb = function () {
       </div>
       `);
     }
-
-   
   }
-   // add leave element and using title field
-   breadcrumbList.insertAdjacentHTML("beforeend",
-   `
-     <li class="ccls-Breadcrumb-listItem" >
-       <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
-       <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
-       </div>
-     </li>
-   `);
- let leaveElement = document.getElementById("cclsBreadcrumbItemLeave");
- let titleField = document.getElementById("cclsTitleField");
- leaveElement.insertAdjacentElement("beforeend", titleField);
+  // add leave element and using title field
+  breadcrumbList.insertAdjacentHTML("beforeend",
+    `
+        <li class="ccls-Breadcrumb-listItem" >
+          <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
+          <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
+          </div>
+        </li>
+      `);
+  let leaveElement = document.getElementById("cclsBreadcrumbItemLeave");
+  let titleField = document.getElementById("cclsTitleField");
+  leaveElement.insertAdjacentElement("beforeend", titleField);
 };
 //#endregion
 
