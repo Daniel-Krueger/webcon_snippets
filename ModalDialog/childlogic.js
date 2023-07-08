@@ -93,7 +93,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
         display:none;
       }
       `;
-    document.getElementsByTagName('head')[0].appendChild(cclsStyle);
+  document.getElementsByTagName('head')[0].appendChild(cclsStyle);
 })();
 
 //#endregion
@@ -168,16 +168,19 @@ window.addEventListener("message", (e) => {
   }
   if (data.type == "parentClosing") {
     // Release current document if in edit mode
-    if ((document.location.href.indexOf("start/wf") == -1) && (G_EDITMODE == true)) {
+    if ((document.location.href.indexOf("start/wf") == -1) && (document.location.href.indexOf("/confirm") == -1)) {
       let options = {
         method: 'GET',
         headers: {}
       };
       // We don't need the result.
       console.log("Execute release checkout for child.");
-      fetch(`/api/nav/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}/element/${GetPairID(G_WFELEM)}/checkout/release`, options).then();
+      fetch(`/api/nav/db/${ccls.utils.getIdFromUrl("db")}/app/${ccls.utils.getIdFromUrl("app")}/element/${ccls.utils.getIdFromUrl("element")}/checkout/release`, options).then(
+        () => {
+        });
     }
-    window.parent.postMessage(new Message("childClosed", data.body));
+    
+    window.parent.postMessage(new Message("childClosed", data.body))
   }
 });
 
