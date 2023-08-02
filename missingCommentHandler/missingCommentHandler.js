@@ -9,6 +9,7 @@ dkr.missingCommentHandler.missingCommentErrorLabel = {
   "pl": "Komentarz jest wymagany na ścieżce",
   "it": "Il commento è obbligatorio",
   "sl": "Potrebno je vnesti komentar",
+  "ro": "Comentariul este obligatoriu pe calea"
 }
 
 // The label of the continue button in the respective language
@@ -17,7 +18,9 @@ dkr.missingCommentHandler.continueBtnLabel = {
   "en": "Continue",
   "pl": "Kontynuuj",
   "it": "Procedi",
-  "sl": "Nadaljuj"
+  "sl": "Nadaljuj",
+  "ro": "Mai departe"
+
 }
 //#endregion
 
