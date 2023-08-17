@@ -45,8 +45,8 @@ ccls.addSaveDraftButton.VersionDependingValues = [
     }
 ];
 
-let versionValues = ccls.utils.getVersionValues(ccls.addSaveDraftButton.VersionDependingValues);
-ccls.addSaveDraftButton.buttonClasses = versionValues.buttonClasses;
+ccls.addSaveDraftButton.versionValues = ccls.utils.getVersionValues(ccls.addSaveDraftButton.VersionDependingValues);
+ccls.addSaveDraftButton.buttonClasses = ccls.addSaveDraftButton.versionValues.buttonClasses;
 
 ccls.addSaveDraftButton.saveButton = null;
 // Define the label of the path
