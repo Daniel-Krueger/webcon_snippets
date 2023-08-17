@@ -1,4 +1,24 @@
 window.dkr = window.dkr || {};
+
+dkr.utils = dkr.utils || {};
+dkr.utils.Version = function (s) {
+  this.arr = s.split('.').map(Number);
+}
+dkr.utils.Version.prototype.compareTo = function (v) {
+  for (var i = 0; ; i++) {
+    if (i >= v.arr.length) return i >= this.arr.length ? 0 : 1;
+    if (i >= this.arr.length) return -1;
+    var diff = this.arr[i] - v.arr[i]
+    if (diff) return diff > 0 ? 1 : -1;
+  }
+}
+dkr.utils.getVersionValues = function (versionValues) {
+  let webconVersion = new dkr.utils.Version(window.window.initModel.version);
+  let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new dkr.utils.Version(entry.version)) > -1).values;
+  return currentVersionValue;
+
+}
+
 dkr.missingRequiredFieldsHandler = dkr.missingRequiredFieldsHandler || {};
 // Enforce a clear array without erroneous fields.
 dkr.missingRequiredFieldsHandler.erroneousFields = [];
@@ -11,7 +31,25 @@ dkr.missingRequiredFieldsHandler.rowLabelForRegEx = {
   "ro": "Rand"
 }
 dkr.missingRequiredFieldsHandler.preventLeavingFieldWithError = true;
+dkr.missingRequiredFieldsHandler.VersionDependingValues = [
+  {
+    version: '0.0.0.0',
+    values: {
+      getFieldFromControls: function (displayName) {
+        return window.model.controls.find((item) => { return item.displayName == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
+      }
 
+    }
+  }, {
+    version: '2023.1.1.1',
+    values: {
+      getFieldFromControls: function (displayName) {
+        return window.model.controls.find((item) => { return item.name.translated == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
+      }
+    }
+  }
+];
+dkr.missingRequiredFieldsHandler.versionValues = dkr.utils.getVersionValues(dkr.missingRequiredFieldsHandler.VersionDependingValues);
 
 //#region Handle tab click in error field
 dkr.missingRequiredFieldsHandler.handleTabClickInErroneousField = function (event, currentElement, updatedFieldNumber) {
@@ -166,7 +204,7 @@ dkr.missingRequiredFieldsHandler.MutationCallback = function (mutationList, obse
     let displayName = item.getAttribute("data-key").substring(0, item.getAttribute("data-key").length - 1);
     itemListName = displayName.match("(.*), " + rowLabel + " \\d+");
     if (itemListName != null && itemListName.length == 2) displayName = itemListName[1];
-    let field = window.model.controls.find((item) => { return item.name.translated == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
+    let field = dkr.missingRequiredFieldsHandler.versionValues.getFieldFromControls(displayName);
     if (field != null) {
       if (field.fieldName.indexOf("SubElems") == 0) {
         itemListFields.push(field.fieldName);
@@ -177,7 +215,7 @@ dkr.missingRequiredFieldsHandler.MutationCallback = function (mutationList, obse
       console.log("Adding required field :" + field.fieldName)
     }
   })
-  
+
   // I have no idea how to switch to another field if we have an error in a item list using tabs. So lets add the item lists at the end.
   dkr.missingRequiredFieldsHandler.erroneousFields = dkr.missingRequiredFieldsHandler.erroneousFields.concat(itemListFields);
 
