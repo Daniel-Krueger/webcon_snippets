@@ -13,12 +13,18 @@ ccls.utils.getGlobal = function (variableName) {
         if (typeof window[variableName] !== 'undefined') {
             resolve(window[variableName]);
         } else {
+            let counter = 0;
             const interval = setInterval(() => {
+                if (counter > 50) { // 1 second
+                    console.log("GetGlobal hit max iteration of 50!!!");
+                    clearInterval(interval);
+                }
+                console.log("Getglobal counter value: " + counter);
                 if (typeof window[variableName] !== 'undefined') {
                     clearInterval(interval);
                     resolve(window[variableName]);
                 }
-            }, 20); // Check every 100ms
+            }, 20);
         }
     });
 };

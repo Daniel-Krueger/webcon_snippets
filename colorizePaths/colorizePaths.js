@@ -12,12 +12,18 @@ ccls.utils.getGlobal = function (variableName) {
         if (typeof window[variableName] !== 'undefined') {
             resolve(window[variableName]);
         } else {
+            let counter = 0;
             const interval = setInterval(() => {
+                if (counter > 50) { // 1 second
+                    console.log("GetGlobal hit max iteration of 50!!!");
+                    clearInterval(interval);
+                }
+                console.log("Getglobal counter value: " + counter);
                 if (typeof window[variableName] !== 'undefined') {
                     clearInterval(interval);
                     resolve(window[variableName]);
                 }
-            }, 20); // Check every 100ms
+            }, 20);
         }
     });
 };
@@ -130,7 +136,7 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
             let currentButton = pathButtons[i];
             if (currentButton.id == 'ccls_SavePathButton')
                 continue;
-            let uiPathDefinition = (await ccls.utils.getLiteModel()).paths.filter(item => item.title == currentButton.value);
+            let uiPathDefinition = paths.filter(item => item.title == currentButton.value);
             if (uiPathDefinition.length != 1) {
                 console.log(`initModel did not containt a path with a title '${currentButton.value}'; this shouldn't happen.`);
                 continue;

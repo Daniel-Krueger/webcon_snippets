@@ -1,4 +1,43 @@
+
 window.dkr = window.dkr || {};
+//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
+ccls.utils = ccls.utils || {};
+console.log("getLiteModel Missing comment handler");
+ccls.utils.getIdFromUrl = function (precedingElement, url) {
+    if (typeof (url) == "undefined") url = document.location.href;
+    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
+};
+ccls.utils.desktopResult = null;
+ccls.utils.getLiteModel = async function () {
+
+    // Is model still valid
+    // If global equals the liteModel values, it should be valid in regards to the avva
+    if (ccls.utils.desktopResult != null) {
+        return ccls.utils.desktopResult.liteData.liteModel;
+    }
+    let url;
+    if (G_ISNEW) {
+        const searchParams = new URLSearchParams(document.location.search);
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
+    }
+    else {
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${ccls.utils.getIdFromUrl('element')}/desktop`;
+    }
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const desktopResult = await fetch(url);
+
+    if (!desktopResult.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    ccls.utils.desktopResult = await desktopResult.json();
+
+    return ccls.utils.desktopResult.liteData.liteModel;
+}
+//#endregion
+
 dkr.missingCommentHandler = dkr.missingCommentHandler || {};
 
 //#region Labels in different languages
@@ -43,7 +82,7 @@ dkr.missingCommentHandler.tryAgainPathExecution = function (pathId) {
   setTimeout(() => { MoveToNextStep(pathId) }, 100);
 }
 
-dkr.missingCommentHandler.MutationCallback = function (mutationList, observer) {
+dkr.missingCommentHandler.MutationCallback = async function (mutationList, observer) {
   //dkr.missingCommentHandler.observerCounter++;
   //console.log("Observer counter " + dkr.missingCommentHandler.observerCounter);
 
@@ -71,12 +110,12 @@ dkr.missingCommentHandler.MutationCallback = function (mutationList, observer) {
 
   let modalErrorDialog = document.querySelector(".form-error-modal");
 
-  let errorText = dkr.missingCommentHandler.missingCommentErrorLabel[G_BROWSER_LANGUAGE.substr(0, 2)]
+  let errorText = dkr.missingCommentHandler.missingCommentErrorLabel[window.initModel.userLang.substr(0, 2)]
   if (!errorText) {
-    alert("Label for 'missing comment on path' is not defined for language :'" + G_BROWSER_LANGUAGE.substr(0, 2));
+    alert("Label for 'missing comment on path' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
     return
   }
-  let continueBtnLbl = dkr.missingCommentHandler.continueBtnLabel[G_BROWSER_LANGUAGE.substr(0, 2)]
+  let continueBtnLbl = dkr.missingCommentHandler.continueBtnLabel[window.initModel.userLang.substr(0, 2)]
 
   let errorMessage = errorContainer[1].getAttribute('data-key');
   
@@ -85,7 +124,7 @@ dkr.missingCommentHandler.MutationCallback = function (mutationList, observer) {
 
   errorContainer[1].insertAdjacentHTML('afterend', '<div id="newComment"><textarea id="newCommentText" class="text-area standard-focus wfFormControl form-control" rows="5" cols="20" ></textarea></div>');
   let pathTitle = errorMessage.substring(errorMessage.indexOf(':') + 1);
-  let uiPathDefinition = initialModel.paths.filter(item => item.title == pathTitle.trim());
+  let uiPathDefinition = (await ccls.utils.getLiteModel()).paths.filter(item => item.title == pathTitle.trim());
 
   let closeButton = $(".form-error-modal__close-button", modalErrorDialog);
   closeButton.hide();

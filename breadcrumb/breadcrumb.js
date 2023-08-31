@@ -28,18 +28,24 @@ ccls.utils.getIdFromUrl = function (precedingElement, url) {
 // If the user clicks fast in the task view in may happen, that the globals don't exist yet.
 // This also applies when opening the preview.    
 ccls.utils.getGlobal = function (variableName) {
-    return new Promise(resolve => {
-        if (typeof window[variableName] !== 'undefined') {
-            resolve(window[variableName]);
-        } else {
-            const interval = setInterval(() => {
-                if (typeof window[variableName] !== 'undefined') {
-                    clearInterval(interval);
-                    resolve(window[variableName]);
-                }
-            }, 20); // Check every 100ms
-        }
-    });
+  return new Promise(resolve => {
+      if (typeof window[variableName] !== 'undefined') {
+          resolve(window[variableName]);
+      } else {
+          let counter = 0;
+          const interval = setInterval(() => {
+              if (counter > 50) { // 1 second
+                  console.log("GetGlobal hit max iteration of 50!!!");
+                  clearInterval(interval);
+              }
+              console.log("Getglobal counter value: " + counter);
+              if (typeof window[variableName] !== 'undefined') {
+                  clearInterval(interval);
+                  resolve(window[variableName]);
+              }
+          }, 20);
+      }
+  });
 };
 ccls.utils.desktopResult = null;
 ccls.utils.getLiteModel = async function () {
@@ -82,7 +88,28 @@ ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
     return await response.json();
 }
 //#endregion
+ccls.utils.continueAlsoPageIsDirty = function () {
+  if (JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).indexOf("true") > -1) {
+    let confirmReloadMessage;
+    switch (window.initModel.userLang.substr(0, 2)) {
+      case "de":
+        confirmReloadMessage =
+          "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
+        break;
+      case "pl":
+        confirmReloadMessage =
+          "Wszystkie niezapisane dane wprowadzone na formularzu zostaną utracone. Czy chcesz kontynuować?";
+        break;
+      default:
+        confirmReloadMessage =
+          "All unsaved entered data on the form will be lost. Do you wish to continue?";
+        break;
+    }
 
+    return confirm(confirmReloadMessage);
+  }
+  return false;
+};
 
 ccls.breadcrumb = {};
 //#region breadcrumb logic

@@ -194,9 +194,9 @@ dkr.missingRequiredFieldsHandler.MutationCallback = function (mutationList, obse
 
   let errorContainer = document.querySelectorAll(".form-error-modal div.form-errors-panel__errors-container__error");
   dkr.missingRequiredFieldsHandler.erroneousFields = [];
-  let rowLabel = dkr.missingRequiredFieldsHandler.rowLabelForRegEx[G_BROWSER_LANGUAGE.substr(0, 2)]
+  let rowLabel = dkr.missingRequiredFieldsHandler.rowLabelForRegEx[window.initModel.userLang.substr(0, 2)]
   if (!rowLabel) {
-    alert("Label for 'row' is not defined for language :'" + G_BROWSER_LANGUAGE.substr(0, 2));
+    alert("Label for 'row' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
     return
   }
   let itemListFields = []

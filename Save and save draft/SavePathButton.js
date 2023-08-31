@@ -4,19 +4,26 @@ ccls.utils = ccls.utils || {};
 
 // If the user clicks fast in the task view in may happen, that the globals don't exist yet.
 // This also applies when opening the preview.    
+
 ccls.utils.getGlobal = function (variableName) {
     return new Promise(resolve => {
         if (typeof window[variableName] !== 'undefined') {
             resolve(window[variableName]);
         } else {
+            let counter = 0;
             const interval = setInterval(() => {
+                if (counter > 50) { // 1 second
+                    console.log("GetGlobal hit max iteration of 50!!!");
+                    clearInterval(interval);
+                }
+                console.log("Getglobal counter value: " + counter);
                 if (typeof window[variableName] !== 'undefined') {
                     clearInterval(interval);
                     resolve(window[variableName]);
                 }
-            }, 20); // Check every 100ms
+            }, 20);
         }
-    });    
+    });
 };
 
 if (ccls.addSaveButtonAsPath?.TimeoutId != undefined) {
@@ -41,15 +48,7 @@ switch (window.initModel.userLang.substring(0, 2)) {
 }
 
 
-ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel, counter) {
-    if (typeof (counter) == "undefined") {
-        counter = 1
-    }
-    else {
-        counter++;
-    }
-    console.log(counter)
-
+ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel) {
     // Only execute if it's not ie11 which is used in the outlook addin
     if (typeof (window.msCrypto) == "undefined") {
         // Start debugger, if debug parameter is set and dev tools are started.
@@ -80,7 +79,7 @@ ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel, co
     if (ccls.addSaveButtonAsPath.saveButton == null || pathPanelRow.length == 0) {
         if (ccls.addSaveButtonAsPath.Timeout <= ccls.addSaveButtonAsPath.TimeoutMax) {
             ccls.addSaveButtonAsPath.Timeout++;
-            ccls.addSaveButtonAsPath.TimeoutId = setTimeout(function () { ccls.addSaveButtonAsPath.createPathButton(alternativeLabel, counter); }, 333)
+            ccls.addSaveButtonAsPath.TimeoutId = setTimeout(function () { ccls.addSaveButtonAsPath.createPathButton(alternativeLabel); }, 333)
         }
         return;
     }
@@ -118,6 +117,6 @@ ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel, co
 
 
 
-ccls.addSaveButtonAsPath.createPathButton(#{BRP:45}#);
+ccls.addSaveButtonAsPath.createPathButton(#{ BRP: 45 }#);
 
 console.log("save path button logic executed");

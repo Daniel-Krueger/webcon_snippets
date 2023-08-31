@@ -40,18 +40,24 @@ ccls.utils.getIdFromUrl = function (precedingElement, url) {
 // If the user clicks fast in the task view in may happen, that the globals don't exist yet.
 // This also applies when opening the preview.    
 ccls.utils.getGlobal = function (variableName) {
-    return new Promise(resolve => {
-        if (typeof window[variableName] !== 'undefined') {
-            resolve(window[variableName]);
-        } else {
-            const interval = setInterval(() => {
-                if (typeof window[variableName] !== 'undefined') {
-                    clearInterval(interval);
-                    resolve(window[variableName]);
-                }
-            }, 20); // Check every 100ms
-        }
-    });
+  return new Promise(resolve => {
+      if (typeof window[variableName] !== 'undefined') {
+          resolve(window[variableName]);
+      } else {
+          let counter = 0;
+          const interval = setInterval(() => {
+              if (counter > 50) { // 1 second
+                  console.log("GetGlobal hit max iteration of 50!!!");
+                  clearInterval(interval);
+              }
+              console.log("Getglobal counter value: " + counter);
+              if (typeof window[variableName] !== 'undefined') {
+                  clearInterval(interval);
+                  resolve(window[variableName]);
+              }
+          }, 20);
+      }
+  });
 };
 ccls.utils.desktopResult = null;
 ccls.utils.getLiteModel = async function () {
