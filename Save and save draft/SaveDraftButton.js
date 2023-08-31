@@ -1,4 +1,71 @@
 window.ccls = window.ccls || {};
+
+//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
+ccls.utils = ccls.utils || {};
+ccls.utils.getIdFromUrl = function (precedingElement, url) {
+    if (typeof (url) == "undefined") url = document.location.href;
+    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
+};
+// If the user clicks fast in the task view in may happen, that the globals don't exist yet.
+// This also applies when opening the preview.    
+ccls.utils.getGlobal = function (variableName) {
+    return new Promise(resolve => {
+        if (typeof window[variableName] !== 'undefined') {
+            resolve(window[variableName]);
+        } else {
+            const interval = setInterval(() => {
+                if (typeof window[variableName] !== 'undefined') {
+                    clearInterval(interval);
+                    resolve(window[variableName]);
+                }
+            }, 20); // Check every 100ms
+        }
+    });
+};
+ccls.utils.desktopResult = null;
+ccls.utils.getLiteModel = async function () {
+    // Desktopresult is null after every save/refresh
+    if (ccls.utils.desktopResult != null) {
+        return ccls.utils.desktopResult.liteData.liteModel;
+    }
+    let url;
+    if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
+        const searchParams = new URLSearchParams(document.location.search);
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
+    }
+    else {
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${GetPairID(G_WFELEM)}/desktop`;
+    }
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const desktopResult = await fetch(url);
+
+    if (!desktopResult.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    ccls.utils.desktopResult = await desktopResult.json();
+
+    return ccls.utils.desktopResult.liteData.liteModel;
+}
+ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
+    url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    return await response.json();
+}
+//#endregion
+
+
+//# region versions
 ccls.utils = ccls.utils || {};
 ccls.utils.Version = function (s) {
     this.arr = s.split('.').map(Number);
@@ -11,11 +78,11 @@ ccls.utils.Version.prototype.compareTo = function (v) {
         if (diff) return diff > 0 ? 1 : -1;
     }
 }
-ccls.utils.getVersionValues = function (versionValues){
+ccls.utils.getVersionValues = function (versionValues) {
     let webconVersion = new ccls.utils.Version(window.window.initModel.version);
-    let currentVersionValue = versionValues.findLast(entry =>webconVersion.compareTo(new ccls.utils.Version(entry.version)) > -1).values;
+    let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new ccls.utils.Version(entry.version)) > -1).values;
     return currentVersionValue;
-    
+
 }
 ccls.addSaveDraftButton = {};
 ccls.addSaveDraftButton.Timeout = 0;
@@ -44,13 +111,14 @@ ccls.addSaveDraftButton.VersionDependingValues = [
         }
     }
 ];
+//#endregion
 
 ccls.addSaveDraftButton.versionValues = ccls.utils.getVersionValues(ccls.addSaveDraftButton.VersionDependingValues);
 ccls.addSaveDraftButton.buttonClasses = ccls.addSaveDraftButton.versionValues.buttonClasses;
 
 ccls.addSaveDraftButton.saveButton = null;
 // Define the label of the path
-switch (G_BROWSER_LANGUAGE.substring(0, 2)) {
+switch (window.initModel.userLang.substring(0, 2)) {
     case "de":
         ccls.addSaveDraftButton.saveDraftButtonLabel = "Entwurf speichern";
         break;
@@ -62,7 +130,7 @@ switch (G_BROWSER_LANGUAGE.substring(0, 2)) {
         break;
 }
 
-ccls.addSaveDraftButton.createSaveDraftButton = function (pathId, alternativeLabel) {
+ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternativeLabel) {
     // Only execute if it's not ie11 which is used in the outlook addin
     if (typeof (window.msCrypto) == "undefined") {
         // Start debugger, if debug parameter is set and dev tools are started.
@@ -73,12 +141,14 @@ ccls.addSaveDraftButton.createSaveDraftButton = function (pathId, alternativeLab
     // The pathId is passed as a string so we need to parse it to an int.
     pathId = parseInt(pathId);
     // if this is a an existing element: hide the save draft path and return
-    if (!G_EDITVIEW || !(G_WFELEM === '0#')) {
-        HidePath(pathId);
+    
+    if (!(await ccls.utils.getGlobal('G_EDITVIEW')) || !(G_WFELEM === '0#')) {
         // hide path in "available paths" buttons" group
-        if (window.initialModel.paths.length > 0) {
-            let draftPath = window.initialModel.paths.find(i => i.id == pathId);
+        let paths = (await ccls.utils.getLiteModel()).paths;
+        if (paths.length > 0) {
+            let draftPath = paths.find(i => i.id == pathId);
             if (draftPath !== undefined) {
+                HidePath(pathId);
                 let existingToolbar = document.getElementById(ccls.addSaveDraftButton.centerPanelId)
                 existingToolbar.insertAdjacentHTML("beforeend", `<style>div[data-key="${draftPath.title}"]{display:none;}</style>`)
             }
@@ -103,7 +173,7 @@ ccls.addSaveDraftButton.createSaveDraftButton = function (pathId, alternativeLab
 
     // creating a dummy element and insert the default html code for the save button
     // the only changes to the default html is the label and the MoveToNextStep function 
-    var saveButton = document.createElement('div');  
+    var saveButton = document.createElement('div');
     saveButton.innerHTML = `<div class="toolbar-button__wrapper">
 <button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="${ccls.addSaveDraftButton.buttonClasses}"  onclick="MoveToNextStep(${pathId})" >
     <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
@@ -131,5 +201,5 @@ ccls.addSaveDraftButton.createSaveDraftButton = function (pathId, alternativeLab
     }
 }
 
-ccls.addSaveDraftButton.createSaveDraftButton(#{ BRP: 21 }#,#{ BRP: 23 }#);
+ccls.addSaveDraftButton.createSaveDraftButton(#{BRP:21}#,#{BRP:23}#);
 console.log("save draft button logic executed");

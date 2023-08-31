@@ -18,39 +18,71 @@
 
 window.ccls = window.ccls || {};
 
-//#region utility functions
+
+//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
 ccls.utils = ccls.utils || {};
-// will return the number followed the preceding element
-// example url: /db/1/app/14/start/wf/278/dt/332
-// "db" would return 1 while wf would return 278
-// if no url is provided, document.location.href will be used.
 ccls.utils.getIdFromUrl = function (precedingElement, url) {
-  if (typeof (url) == "undefined") url = document.location.href;
-  return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
+    if (typeof (url) == "undefined") url = document.location.href;
+    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
 };
-ccls.utils.continueAlsoPageIsDirty = function () {
-  if (JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).indexOf("true") > -1) {
-    let confirmReloadMessage;
-    switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
-      case "de":
-        confirmReloadMessage =
-          "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
-        break;
-      case "pl":
-        confirmReloadMessage =
-          "Wszystkie niezapisane dane wprowadzone na formularzu zostaną utracone. Czy chcesz kontynuować?";
-        break;
-      default:
-        confirmReloadMessage =
-          "All unsaved entered data on the form will be lost. Do you wish to continue?";
-        break;
+// If the user clicks fast in the task view in may happen, that the globals don't exist yet.
+// This also applies when opening the preview.    
+ccls.utils.getGlobal = function (variableName) {
+    return new Promise(resolve => {
+        if (typeof window[variableName] !== 'undefined') {
+            resolve(window[variableName]);
+        } else {
+            const interval = setInterval(() => {
+                if (typeof window[variableName] !== 'undefined') {
+                    clearInterval(interval);
+                    resolve(window[variableName]);
+                }
+            }, 20); // Check every 100ms
+        }
+    });
+};
+ccls.utils.desktopResult = null;
+ccls.utils.getLiteModel = async function () {
+    // Desktopresult is null after every save/refresh
+    if (ccls.utils.desktopResult != null) {
+        return ccls.utils.desktopResult.liteData.liteModel;
+    }
+    let url;
+    if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
+        const searchParams = new URLSearchParams(document.location.search);
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
+    }
+    else {
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${GetPairID(G_WFELEM)}/desktop`;
     }
 
-    return confirm(confirmReloadMessage);
-  }
-  return false;
-};
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const desktopResult = await fetch(url);
+
+    if (!desktopResult.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    ccls.utils.desktopResult = await desktopResult.json();
+
+    return ccls.utils.desktopResult.liteData.liteModel;
+}
+ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
+    url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    return await response.json();
+}
 //#endregion
+
 
 ccls.breadcrumb = {};
 //#region breadcrumb logic
@@ -58,7 +90,7 @@ ccls.breadcrumb = {};
 ccls.breadcrumb.textOnly = false;
 ccls.breadcrumb.showHome = true;
 ccls.breadcrumb.homeLabel;
-switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
+switch (window.initModel.userLang.substr(0, 2)) {
   case "de":
     ccls.breadcrumb.homeLabel = "Home";
     break;
@@ -70,15 +102,15 @@ switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
     break;
 }
 
-ccls.breadcrumb.navigateTo = function (appId, elementId) {
+ccls.breadcrumb.navigateTo = async function (appId, elementId) {
   if (!ccls.utils.continueAlsoPageIsDirty) return;
   let dbId = ccls.utils.getIdFromUrl('db');
   // We can not fetch the application from the URL because it's not part of the URL from the global task overview.
   // Only the db and element are part of the URL /tasks/db/3/element/2758/form
-  let currentAppId = initialModel.formInfo.applicationId;
+  let currentAppId = (await ccls.utils.getLiteModel()).formInfo.applicationId;
   let currentElementId = ccls.utils.getIdFromUrl('element');
   // Release current document if in edit mode
-  if (G_EDITMODE == true) {
+  if (G_EDITVIEW == true) {
     let options = {
       method: 'GET',
       headers: {}
@@ -87,13 +119,18 @@ ccls.breadcrumb.navigateTo = function (appId, elementId) {
     fetch(`/api/nav/db/${dbId}/app/${currentAppId}/element/${currentElementId}/checkout/release`, options).then();
   }
   elemntToDisplay = `/db/${dbId}/app/${appId}/element/${elementId}/form?returnurl=`
+
+  // Will include the existing return URL
+  //document.location.href =
+  //    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form` + document.location.search);
+  // Use only the current return URL
   document.location.href =
-    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form` + document.location.search);
+    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form`);
 };
 ccls.breadcrumb.webconData = "";
 // ccls.breadcrumb.webconData =
 //   '[{"id":28153, "parentId":null, "parentLevel":1, "signature":"COSMOCONSULTUserExperience/2023/03/00003", "title":"Parent process", "appId":"110, "formType":"COSMO CONSULT User Experience"},{"id":28174, "parentId":28153, "parentLevel":0, "signature":"COSMOCONSULTUserExperienceChild/2023/03/00020", "title":"AAAAA", "appId":"110, "formType":"COSMO CONSULT User experience child"},]';
-ccls.breadcrumb.createBreadcrumb = function () {
+ccls.breadcrumb.createBreadcrumb = async function () {
   if (new URLSearchParams(document.location.search).get("debug") == "breadcrumb") {
     debugger;
   }
@@ -111,7 +148,7 @@ ccls.breadcrumb.createBreadcrumb = function () {
     title = applicationHomeElement.innerText;
   }
   else {
-    homeUrl = `/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}`;
+    homeUrl = `/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID((await ccls.utils.getGlobal('G_APP')))}`;
     title = 'Home';
   }
 
@@ -148,18 +185,18 @@ ccls.breadcrumb.createBreadcrumb = function () {
         if (itemTitle == null || itemTitle == "") {
           itemTitle = item.formType
         }
-        
+
         if (this.textOnly) {
-          breadcrumbDropDownContent += `<span>${item.signature+':'+ itemTitle}</span>`;
+          breadcrumbDropDownContent += `<span>${item.signature + ':' + itemTitle}</span>`;
         } else {
-          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})">${item.signature+'('+item.id+')'+':'+ itemTitle}</a>`;
+          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})">${item.signature + '(' + item.id + ')' + ':' + itemTitle}</a>`;
         }
 
         let breadcrumbItem;
         if (this.textOnly) {
-          breadcrumbItem = `<div class="ccls-Breadcrumb-itemLeave" title="${item.signature+':'+ itemTitle}"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</div>`;
+          breadcrumbItem = `<div class="ccls-Breadcrumb-itemLeave" title="${item.signature + ':' + itemTitle}"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</div>`;
         } else {
-          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature+'('+item.id+')'+':'+ itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
+          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature + '(' + item.id + ')' + ':' + itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
         }
         breadcrumbItem += '<i class="ccls-Breadcrumb-chevron ms-Icon ms-Icon--ChevronRight"></i>';
         dummy.innerHTML = breadcrumbItem;

@@ -13,7 +13,7 @@ ccls.utils.getIdFromUrl = function (precedingElement, url) {
 ccls.utils.continueAlsoPageIsDirty = function () {
   if (JSON.stringify(sessionStorage.getItem('WebconBPS_FormIsDirty')).indexOf("true") > -1) {
     let confirmReloadMessage;
-    switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
+    switch (window.initModel.userLang.substr(0, 2)) {
       case "de":
         confirmReloadMessage = "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
         break;
@@ -29,6 +29,72 @@ ccls.utils.continueAlsoPageIsDirty = function () {
 }
 
 //#endregion
+
+
+//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
+ccls.utils = ccls.utils || {};
+ccls.utils.getIdFromUrl = function (precedingElement, url) {
+    if (typeof (url) == "undefined") url = document.location.href;
+    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
+};
+// If the user clicks fast in the task view in may happen, that the globals don't exist yet.
+// This also applies when opening the preview.    
+ccls.utils.getGlobal = function (variableName) {
+    return new Promise(resolve => {
+        if (typeof window[variableName] !== 'undefined') {
+            resolve(window[variableName]);
+        } else {
+            const interval = setInterval(() => {
+                if (typeof window[variableName] !== 'undefined') {
+                    clearInterval(interval);
+                    resolve(window[variableName]);
+                }
+            }, 20); // Check every 100ms
+        }
+    });
+};
+ccls.utils.desktopResult = null;
+ccls.utils.getLiteModel = async function () {
+    // Desktopresult is null after every save/refresh
+    if (ccls.utils.desktopResult != null) {
+        return ccls.utils.desktopResult.liteData.liteModel;
+    }
+    let url;
+    if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
+        const searchParams = new URLSearchParams(document.location.search);
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
+    }
+    else {
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${GetPairID(G_WFELEM)}/desktop`;
+    }
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const desktopResult = await fetch(url);
+
+    if (!desktopResult.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    ccls.utils.desktopResult = await desktopResult.json();
+
+    return ccls.utils.desktopResult.liteData.liteModel;
+}
+ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
+    url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    return await response.json();
+}
+//#endregion
+
 
 ccls.modal = ccls.modal || {};
 ccls.modal.dialog = ccls.modal.dialog || {};
@@ -56,7 +122,7 @@ ccls.modal.dialog.closeFunctions.displayAttachment = function (parameters) {
     parameters.dbId = ccls.utils.getIdFromUrl("db");
   }
 
-  if (!ccls.utils.continueAlsoPageIsDirtycontinueAlsoPageIsDirty) return;
+  if (!ccls.utils.continueAlsoPageIsDirty) return;
 
   var url = `"/api/nav/db/${parameters.dbId}/element/${parameters.elementId}/attachments/${parameters.attachmentId}/edit?withRedirect=true"`;
   console.log(`Opening edit document URL: '${url}'`);
@@ -67,7 +133,7 @@ ccls.modal.dialog.closeFunctions.displayAttachment = function (parameters) {
 // This will trigger the refresh button in the tool bar
 // If you only need to reload datatables, there's no need to call this.
 ccls.modal.dialog.closeFunctions.executeRefreshButton = function (parameters) {
-  if (!ccls.utils.continueAlsoPageIsDirtycontinueAlsoPageIsDirty) return;
+  if (!ccls.utils.continueAlsoPageIsDirty) return;
   let reloadButton = $("#ReloadToolbarButton");
   if (reloadButton.length == 1) { reloadButton[0].click() }
 }
@@ -101,35 +167,34 @@ ccls.modal.dialog.closeFunctions.setInstanceIdForItemListColumn = function (para
 // internal function for setting the field, can be called from a custom function
 // can be used to populate a picker which uses the Guid of an instance, for example dictionaries
 // The Guid will be retrieved by getting the model of the provided instance id.
-ccls.modal.dialog.closeFunctions.setGuidForField = function (parameters, targetField) {
+ccls.modal.dialog.closeFunctions.setGuidForField = async function (parameters, targetField) {
   if (parameters == null) {
     console.log("No parameters have been provided");
     return;
   }
-  $.getJSON(`/api/nav/db/${parameters.dbId}/element/${parameters.instanceId}/desktop`, (data) => {
-    ccls.modal.dialog.startDebugger();
-    SetValue(targetField, data.liteData.liteModel.formInfo.guid);
-  });
+  const data = await ccls.utils.getSpecificLiteModel(parameters.dbId, parameters.instanceId);
+  ccls.modal.dialog.startDebugger();
+  SetValue(targetField, data.liteData.liteModel.formInfo.guid);
 }
 
 // internal function for setting a column in an item list
 // can be used to populate a picker which uses the Guid of an instance, for example dictionaries
 // if row is not provided or -1 the last row will be used.
 // The Guid will be retrieved by getting the model of the provided instance id.
-ccls.modal.dialog.closeFunctions.setGuidForItemListColumn = function (parameters, targetItemList, targetColumn, row) {
+ccls.modal.dialog.closeFunctions.setGuidForItemListColumn = async function (parameters, targetItemList, targetColumn, row) {
   if (parameters == null) {
     console.log("No parameters have been provided");
     return;
   }
-  $.getJSON(`/api/nav/db/${parameters.dbId}/element/${parameters.instanceId}/desktop`, (data) => {
-    ccls.modal.dialog.startDebugger();
-    if (typeof (row) === "undefined" || row === -1) {
-      SetSubValue(targetItemList, SubelementCountRows(targetItemList), targetColumn, data.liteData.liteModel.formInfo.guid);
-    }
-    else {
-      SetSubValue(targetItemList, row, targetColumn, data.liteData.liteModel.formInfo.guid);
-    }
-  });
+
+  const data = await ccls.utils.getSpecificLiteModel(parameters.dbId, parameters.instanceId);
+  ccls.modal.dialog.startDebugger();
+  if (typeof (row) === "undefined" || row === -1) {
+    SetSubValue(targetItemList, SubelementCountRows(targetItemList), targetColumn, data.liteData.liteModel.formInfo.guid);
+  }
+  else {
+    SetSubValue(targetItemList, row, targetColumn, data.liteData.liteModel.formInfo.guid);
+  }
 }
 
 
@@ -151,10 +216,17 @@ ccls.modal.dialog.childClosed = function (parameters) {
   clearTimeout(ccls.modal.dialog.closingTimeout);
   document.getElementById('cclsModal').style.display = "none";
   document.getElementById("cclsModaliframe").src = "about:blank";
+
+  // If we refresh the page, we don't need to execute individual refreshs.
+  if (ccls.modal.dialog.customClosingFunction == ccls.modal.dialog.closeFunctions.executeRefreshButton) {
+    ccls.modal.dialog.closeFunctions.executeRefreshButton();
+    return;
+  }
+
   // Will trigger reload of any data tables.
   $(".reload-button-container").find("button").each((index, element) => { element.click() });
   $(".reload-button-container").find("span").each((index, element) => { element.click() });
-  if (typeof (ccls.modal.dialog.customClosingFunction) == 'function' && typeof (parameters) != "undefined") {
+  if (typeof (ccls.modal.dialog.customClosingFunction) == 'function') {
     ccls.modal.dialog.customClosingFunction(parameters);
   }
 }
@@ -223,7 +295,7 @@ ccls.modal.dialog.startWorkflow = function (titleLabels, urlParametersAsString, 
 ccls.modal.dialog.internalOpen = function (titleLabels, url, dimensions, closeFunction) {
   console.log(url);
   let titles = JSON.parse("{" + titleLabels + "}");
-  let title = titles[G_BROWSER_LANGUAGE.substr(0, 2)];
+  let title = titles[window.initModel.userLang.substr(0, 2)];
   if (typeof (title) == "undefined") title = titles.default;
 
   // Display modal and set information
@@ -231,8 +303,12 @@ ccls.modal.dialog.internalOpen = function (titleLabels, url, dimensions, closeFu
   document.getElementById("cclsModalTitle").innerText = title;
   document.getElementById('cclsModal').style.display = "block";
   if (dimensions != undefined) {
+    if (G_ISMOBILE) {
+      dimensions = " height:95%; width:95%"
+    }
     $(".modal-window").attr("style", "z-index: 2003;" + dimensions);
   }
+
 
   if (typeof (closeFunction) == "function") {
     ccls.modal.dialog.customClosingFunction = closeFunction;

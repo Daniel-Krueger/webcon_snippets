@@ -130,7 +130,7 @@ ccls.modal.closeButton.addCloseDialogButton = function () {
 
 if (ccls.modal.closeButton.displayAsPath == true) {
   // Labels
-  switch (G_BROWSER_LANGUAGE.substr(0, 2)) {
+  switch (window.initModel.userLang.substr(0, 2)) {
     case "de":
       ccls.modal.closeButton.label = "Dialog schließen";
       break;

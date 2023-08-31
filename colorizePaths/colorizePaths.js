@@ -1,10 +1,76 @@
 window.ccls = window.ccls || {};
+//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
+ccls.utils = ccls.utils || {};
+ccls.utils.getIdFromUrl = function (precedingElement, url) {
+    if (typeof (url) == "undefined") url = document.location.href;
+    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
+};
+// If the user clicks fast in the task view in may happen, that the globals don't exist yet.
+// This also applies when opening the preview.    
+ccls.utils.getGlobal = function (variableName) {
+    return new Promise(resolve => {
+        if (typeof window[variableName] !== 'undefined') {
+            resolve(window[variableName]);
+        } else {
+            const interval = setInterval(() => {
+                if (typeof window[variableName] !== 'undefined') {
+                    clearInterval(interval);
+                    resolve(window[variableName]);
+                }
+            }, 20); // Check every 100ms
+        }
+    });
+};
+ccls.utils.desktopResult = null;
+ccls.utils.getLiteModel = async function () {
+    // Desktopresult is null after every save/refresh
+    if (ccls.utils.desktopResult != null) {
+        return ccls.utils.desktopResult.liteData.liteModel;
+    }
+    let url;
+    if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
+        const searchParams = new URLSearchParams(document.location.search);
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
+    }
+    else {
+        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${GetPairID(G_WFELEM)}/desktop`;
+    }
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const desktopResult = await fetch(url);
+
+    if (!desktopResult.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    ccls.utils.desktopResult = await desktopResult.json();
+
+    return ccls.utils.desktopResult.liteData.liteModel;
+}
+ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
+    url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
+
+    console.log("Calling desktop endpoint");
+    // Fetch the JSON resource
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch desktopModel');
+    }
+
+    return await response.json();
+}
+//#endregion
+
+
+
 ccls.colorizePaths = {};
 // #region colorize logic 
 ccls.colorizePaths.webconData = "";
 ccls.colorizePaths.dummyData =
     '[{"id":222,"name":"Grey","color":"default"},{"id":223,"name":"Blue","color":"#FF0093DC"},{"id":224,"name":"Red","color":"#FFDC002E"},{"id":225,"name":"orange multi en-US","color":"#FFFFA500"},{"id":226,"name":"Yellow en only","color":"#FFFFFF00"},{"id":227,"name":"Green en-GB","color":"#FF9ACD32"},{"id":228,"name":"Purple en-US","color":"#FFD1ABE5"},{"id":229,"name":"Black","color":"#FF000000"},]';
-    
+
 ccls.colorizePaths.setDummyData = function () { ccls.colorizePaths.webconData = ccls.colorizePaths.dummyData; }
 
 ccls.colorizePaths.documentation = {
@@ -39,7 +105,7 @@ Zielony: Pozytywne działanie, posunie naprzód przepływ pracy
 Żółty: Przepływ zostanie odłożony/przeprogramowany, użytkownik otrzyma przypomnienie w zaplanowanym terminie
     `
 }
-ccls.colorizePaths.colorize = function (debug, retryCounter) {
+ccls.colorizePaths.colorize = async function (debug, retryCounter) {
     if (debug == true) debugger;
     if (typeof (retryCounter) === "undefined") retryCounter = 0;
     if (ccls.colorizePaths.webconData != "") {
@@ -59,10 +125,12 @@ ccls.colorizePaths.colorize = function (debug, retryCounter) {
         );
 
         let pathButtons = document.getElementsByClassName("pathPanelButton");
+        let paths = (await ccls.utils.getLiteModel()).paths;
         for (let i = 0; i < pathButtons.length; i++) {
             let currentButton = pathButtons[i];
-
-            let uiPathDefinition = initialModel.paths.filter(item => item.title == currentButton.value);
+            if (currentButton.id == 'ccls_SavePathButton')
+                continue;
+            let uiPathDefinition = (await ccls.utils.getLiteModel()).paths.filter(item => item.title == currentButton.value);
             if (uiPathDefinition.length != 1) {
                 console.log(`initModel did not containt a path with a title '${currentButton.value}'; this shouldn't happen.`);
                 continue;
@@ -79,7 +147,7 @@ ccls.colorizePaths.colorize = function (debug, retryCounter) {
             }
             currentButton.classList.add(pathStyling.class);
         }
-        let userLanguage = G_BROWSER_LANGUAGE.substring(0, 2)
+        let userLanguage = window.initModel.userLang.substring(0, 2)
         let documentation = ccls.colorizePaths.documentation[userLanguage] != null ? ccls.colorizePaths.documentation[userLanguage] : ccls.colorizePaths.documentation.default;
         let html = `<i class="icon ms-Icon ms-Icon--Info ms-Icon--standard descriptionTooltipIcon" aria-hidden="true" data-disabled="false" title="${documentation}" ></i> `
         availablePathsElement[0].insertAdjacentHTML('afterend', html);
