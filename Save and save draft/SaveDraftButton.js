@@ -1,95 +1,4 @@
 window.ccls = window.ccls || {};
-
-//#region initialModel is no longer available in BPS 2023 R2 so we access the desktop endpoint to retrieve the liteModel
-ccls.utils = ccls.utils || {};
-ccls.utils.getIdFromUrl = function (precedingElement, url) {
-    if (typeof (url) == "undefined") url = document.location.href;
-    return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
-};
-// If the user clicks fast in the task view in may happen, that the globals don't exist yet.
-// This also applies when opening the preview.    
-ccls.utils.getGlobal = function (variableName) {
-    return new Promise(resolve => {
-        if (typeof window[variableName] !== 'undefined') {
-            resolve(window[variableName]);
-        } else {
-            let counter = 0;
-            const interval = setInterval(() => {
-                if (counter > 50) { // 1 second
-                    console.log("GetGlobal hit max iteration of 50!!!");
-                    clearInterval(interval);
-                }
-                console.log("Getglobal counter value: " + counter);
-                if (typeof window[variableName] !== 'undefined') {
-                    clearInterval(interval);
-                    resolve(window[variableName]);
-                }
-            }, 20);
-        }
-    });
-};
-ccls.utils.desktopResult = null;
-ccls.utils.getLiteModel = async function () {
-    // Desktopresult is null after every save/refresh
-    if (ccls.utils.desktopResult != null) {
-        return ccls.utils.desktopResult.liteData.liteModel;
-    }
-    let url;
-    if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
-        const searchParams = new URLSearchParams(document.location.search);
-        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
-    }
-    else {
-        url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/element/${GetPairID(G_WFELEM)}/desktop`;
-    }
-
-    console.log("Calling desktop endpoint");
-    // Fetch the JSON resource
-    const desktopResult = await fetch(url);
-
-    if (!desktopResult.ok) {
-        throw new Error('Failed to fetch desktopModel');
-    }
-
-    ccls.utils.desktopResult = await desktopResult.json();
-
-    return ccls.utils.desktopResult.liteData.liteModel;
-}
-ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
-    url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
-
-    console.log("Calling desktop endpoint");
-    // Fetch the JSON resource
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch desktopModel');
-    }
-
-    return await response.json();
-}
-//#endregion
-
-
-//# region versions
-ccls.utils = ccls.utils || {};
-ccls.utils.Version = function (s) {
-    this.arr = s.split('.').map(Number);
-}
-ccls.utils.Version.prototype.compareTo = function (v) {
-    for (var i = 0; ; i++) {
-        if (i >= v.arr.length) return i >= this.arr.length ? 0 : 1;
-        if (i >= this.arr.length) return -1;
-        var diff = this.arr[i] - v.arr[i]
-        if (diff) return diff > 0 ? 1 : -1;
-    }
-}
-ccls.utils.getVersionValues = function (versionValues) {
-    let webconVersion = new ccls.utils.Version(window.window.initModel.version);
-    let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new ccls.utils.Version(entry.version)) > -1).values;
-    return currentVersionValue;
-
-}
 ccls.addSaveDraftButton = {};
 ccls.addSaveDraftButton.Timeout = 0;
 ccls.addSaveDraftButton.TimeoutMax = 4;
@@ -140,14 +49,14 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
     // Only execute if it's not ie11 which is used in the outlook addin
     if (typeof (window.msCrypto) == "undefined") {
         // Start debugger, if debug parameter is set and dev tools are started.
-        if (new URLSearchParams(document.location.search).get("debug") == 1) {
+        if (new URLSearchParams(document.location.search).get("debug") == 'saveDraft') {
             debugger;
         }
     }
     // The pathId is passed as a string so we need to parse it to an int.
     pathId = parseInt(pathId);
     // if this is a an existing element: hide the save draft path and return
-    
+
     if (!(await ccls.utils.getGlobal('G_EDITVIEW')) || !(G_WFELEM === '0#')) {
         // hide path in "available paths" buttons" group
         let paths = (await ccls.utils.getLiteModel()).paths;
@@ -207,5 +116,5 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
     }
 }
 
-ccls.addSaveDraftButton.createSaveDraftButton(#{BRP:21}#,#{BRP:23}#);
+//ccls.addSaveDraftButton.createSaveDraftButton('PATHID', 'AlternativeLabel');
 console.log("save draft button logic executed");

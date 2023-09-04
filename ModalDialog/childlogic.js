@@ -72,7 +72,19 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
     themedColor = "#ff9c00c4";
     themedColorHover = "#ffab0045";
   }
-  cclsStyle.innerHTML = `
+  if (ccls.modal.showFullForm == true) {
+    cclsStyle.innerHTML = `
+      .dynamic-form.modern #pathPanel 
+      #cclsCloseDialogButton} {
+      background-color: ${themedColor};
+      }
+      .dynamic-form.modern #pathPanel 
+      #cclsCloseDialogButton:hover {
+      background-color: ${themedColorHover};
+      }
+      `;
+  } else {
+    cclsStyle.innerHTML = `
       .dynamic-form.modern #pathPanel 
       #cclsCloseDialogButton} {
       background-color: ${themedColor};
@@ -93,6 +105,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
         display:none;
       }
       `;
+  }
   document.getElementsByTagName('head')[0].appendChild(cclsStyle);
 })();
 
