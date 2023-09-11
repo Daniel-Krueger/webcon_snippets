@@ -59,7 +59,7 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
 
     if (!(await ccls.utils.getGlobal('G_EDITVIEW')) || !(G_WFELEM === '0#')) {
         // hide path in "available paths" buttons" group
-        let paths = (await ccls.utils.getLiteModel()).paths;
+        let paths =  ccls.utils.basicPathInformation;
         if (paths.length > 0) {
             let draftPath = paths.find(i => i.id == pathId);
             if (draftPath !== undefined) {

@@ -39,8 +39,7 @@ ccls.breadcrumb.navigateTo = async function (appId, elementId) {
   if (!ccls.utils.continueAlsoPageIsDirty) return;
   let dbId = ccls.utils.getIdFromUrl('db');
   // We can not fetch the application from the URL because it's not part of the URL from the global task overview.
-  // Only the db and element are part of the URL /tasks/db/3/element/2758/form
-  let currentAppId = (await ccls.utils.getLiteModel()).formInfo.applicationId;
+  // Only the db and element are part of the URL /tasks/db/3/element/2758/form  
   let currentElementId = ccls.utils.getIdFromUrl('element');
   // Release current document if in edit mode
   if (G_EDITVIEW == true) {
@@ -49,7 +48,7 @@ ccls.breadcrumb.navigateTo = async function (appId, elementId) {
       headers: {}
     };
     // We don't need the result.
-    fetch(`/api/nav/db/${dbId}/app/${currentAppId}/element/${currentElementId}/checkout/release`, options).then();
+    fetch(`/api/nav/db/${dbId}/app/${ccls.utils.applicationId}/element/${currentElementId}/checkout/release`, options).then();
   }
   elemntToDisplay = `/db/${dbId}/app/${appId}/element/${elementId}/form?returnurl=`
 
@@ -157,7 +156,7 @@ ccls.breadcrumb.createBreadcrumb = async function () {
           </div>
         </li>
       `);
-  let leaveElement = document.getElementById("cclsBreadcrumbItemLeave");
+  let leaveElement = breadcrumbList.querySelector("#cclsBreadcrumbItemLeave");
   let titleField = document.getElementById("cclsTitleField");
   leaveElement.insertAdjacentElement("beforeend", titleField);
 };

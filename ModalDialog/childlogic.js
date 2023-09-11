@@ -182,17 +182,21 @@ window.addEventListener("message", (e) => {
   if (data.type == "parentClosing") {
     // Release current document if in edit mode
     if ((document.location.href.indexOf("start/wf") == -1) && (document.location.href.indexOf("/confirm") == -1)) {
-      let options = {
-        method: 'GET',
-        headers: {}
-      };
-      // We don't need the result.
-      console.log("Execute release checkout for child.");
-      fetch(`/api/nav/db/${ccls.utils.getIdFromUrl("db")}/app/${ccls.utils.getIdFromUrl("app")}/element/${ccls.utils.getIdFromUrl("element")}/checkout/release`, options).then(
-        () => {
-        });
+      if (G_EDITVIEW) {
+        // We don't need the result.
+        let elementId = ccls.utils.getIdFromUrl("element");
+        console.log("Execute release checkout for child instance:" + elementId);
+        let options = {
+          method: 'GET',
+          headers: {}
+        };
+
+        fetch(`/api/nav/db/${ccls.utils.getIdFromUrl("db")}/app/${GetPairID(G_APP)}/element/${elementId}/checkout/release`, options).then(
+          () => {
+          });
+      }
     }
-    
+    console.log("Child dialog closed");
     window.parent.postMessage(new Message("childClosed", data.body))
   }
 });

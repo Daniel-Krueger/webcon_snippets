@@ -1,10 +1,12 @@
-window.ccls = window.ccls || {};
+window.ccls = {};
 ccls.utils = ccls.utils || {};
 ccls.utils.getIdFromUrl = function (precedingElement, url) {
   if (typeof (url) == "undefined") url = document.location.href;
   return url.match("\/" + precedingElement + "\/([0-9]*)\/")[1];
 };
 
+
+// If a user switches very fast between tasks/previews it can happen that the G_ variables don't exist.
 ccls.utils.getGlobal = function (variableName) {
   return new Promise(resolve => {
     if (typeof window[variableName] !== 'undefined') {
@@ -26,30 +28,32 @@ ccls.utils.getGlobal = function (variableName) {
   });
 };
 ccls.utils.continueAlsoPageIsDirty = function () {
-    if (JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).indexOf("true") > -1) {
-      let confirmReloadMessage;
-      switch (window.initModel.userLang.substr(0, 2)) {
-        case "de":
-          confirmReloadMessage =
-            "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
-          break;
-        case "pl":
-          confirmReloadMessage =
-            "Wszystkie niezapisane dane wprowadzone na formularzu zostaną utracone. Czy chcesz kontynuować?";
-          break;
-        default:
-          confirmReloadMessage =
-            "All unsaved entered data on the form will be lost. Do you wish to continue?";
-          break;
-      }
-  
-      return confirm(confirmReloadMessage);
+  if (JSON.stringify(sessionStorage.getItem("WebconBPS_FormIsDirty")).indexOf("true") > -1) {
+    let confirmReloadMessage;
+    switch (window.initModel.userLang.substr(0, 2)) {
+      case "de":
+        confirmReloadMessage =
+          "Die Seite soll neugeladen werden, bisherige Änderungen werden nicht gespeichert. Wollen Sie fortfahren.";
+        break;
+      case "pl":
+        confirmReloadMessage =
+          "Wszystkie niezapisane dane wprowadzone na formularzu zostaną utracone. Czy chcesz kontynuować?";
+        break;
+      default:
+        confirmReloadMessage =
+          "All unsaved entered data on the form will be lost. Do you wish to continue?";
+        break;
     }
-    return false;
-  };
+
+    return confirm(confirmReloadMessage);
+  }
+  return false;
+};
 
 //#region Get lite model
 ccls.utils.desktopResult = null;
+ccls.utils.applicationId = null;
+ccls.utils.basicPathInformation = null;
 ccls.utils.getFetchHeaders = function () {
   const headers = new Headers();
   const impersonatorData = localStorage.getItem("WebconBPS_Impersonator");
@@ -98,24 +102,48 @@ ccls.utils.getLiteModel = async function () {
 
   return ccls.utils.desktopResult.liteData.liteModel;
 }
+
+ccls.utils.getSpecificLiteModel = async function (dbId, elementId) {
+  url = `/api/nav/db/${dbId}/element/${elementId}/desktop`;
+
+  console.log("Calling desktop endpoint for specified element"+elementId);
+  // Fetch the JSON resource
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch desktopModel');
+  }
+
+  return await response.json();
+}
+
+
+
+ccls.utils.getApplicationId = async function () {
+  if (ccls.utils.applicationId == null) {
+    ccls.utils.applicationId = (await ccls.utils.getLiteModel()).formInfo.applicationId;
+  }
+  return ccls.utils.applicationId;
+}
+
 //#endregion
 
 //#region version handling
 ccls.utils.Version = function (s) {
-    this.arr = s.split('.').map(Number);
+  this.arr = s.split('.').map(Number);
 }
 ccls.utils.Version.prototype.compareTo = function (v) {
-    for (var i = 0; ; i++) {
-        if (i >= v.arr.length) return i >= this.arr.length ? 0 : 1;
-        if (i >= this.arr.length) return -1;
-        var diff = this.arr[i] - v.arr[i]
-        if (diff) return diff > 0 ? 1 : -1;
-    }
+  for (var i = 0; ; i++) {
+    if (i >= v.arr.length) return i >= this.arr.length ? 0 : 1;
+    if (i >= this.arr.length) return -1;
+    var diff = this.arr[i] - v.arr[i]
+    if (diff) return diff > 0 ? 1 : -1;
+  }
 }
 ccls.utils.getVersionValues = function (versionValues) {
-    let webconVersion = new ccls.utils.Version(window.window.initModel.version);
-    let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new ccls.utils.Version(entry.version)) > -1).values;
-    return currentVersionValue;
+  let webconVersion = new ccls.utils.Version(window.window.initModel.version);
+  let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new ccls.utils.Version(entry.version)) > -1).values;
+  return currentVersionValue;
 
 }
 //#endregion

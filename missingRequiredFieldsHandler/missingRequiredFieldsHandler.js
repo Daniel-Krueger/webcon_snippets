@@ -1,24 +1,5 @@
 window.dkr = window.dkr || {};
 
-dkr.utils = dkr.utils || {};
-dkr.utils.Version = function (s) {
-  this.arr = s.split('.').map(Number);
-}
-dkr.utils.Version.prototype.compareTo = function (v) {
-  for (var i = 0; ; i++) {
-    if (i >= v.arr.length) return i >= this.arr.length ? 0 : 1;
-    if (i >= this.arr.length) return -1;
-    var diff = this.arr[i] - v.arr[i]
-    if (diff) return diff > 0 ? 1 : -1;
-  }
-}
-dkr.utils.getVersionValues = function (versionValues) {
-  let webconVersion = new dkr.utils.Version(window.window.initModel.version);
-  let currentVersionValue = versionValues.findLast(entry => webconVersion.compareTo(new dkr.utils.Version(entry.version)) > -1).values;
-  return currentVersionValue;
-
-}
-
 dkr.missingRequiredFieldsHandler = dkr.missingRequiredFieldsHandler || {};
 // Enforce a clear array without erroneous fields.
 dkr.missingRequiredFieldsHandler.erroneousFields = [];
@@ -35,21 +16,21 @@ dkr.missingRequiredFieldsHandler.VersionDependingValues = [
   {
     version: '0.0.0.0',
     values: {
-      getFieldFromControls: function (displayName) {
-        return window.model.controls.find((item) => { return item.displayName == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
+      getFieldFromControls: async function (displayName) {
+        return (await ccls.utils.getLiteModel()).controls.find((item) => { return item.displayName == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
       }
 
     }
   }, {
     version: '2023.1.1.1',
     values: {
-      getFieldFromControls: function (displayName) {
-        return window.model.controls.find((item) => { return item.name.translated == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
+      getFieldFromControls: async function (displayName) {
+        return (await ccls.utils.getLiteModel()).controls.find((item) => { return item.name.translated == displayName && (item.fieldName.indexOf("Att") == 0 || item.fieldName.indexOf("SubElems") == 0) })
       }
     }
   }
 ];
-dkr.missingRequiredFieldsHandler.versionValues = dkr.utils.getVersionValues(dkr.missingRequiredFieldsHandler.VersionDependingValues);
+dkr.missingRequiredFieldsHandler.versionValues = ccls.utils.getVersionValues(dkr.missingRequiredFieldsHandler.VersionDependingValues);
 
 //#region Handle tab click in error field
 dkr.missingRequiredFieldsHandler.handleTabClickInErroneousField = function (event, currentElement, updatedFieldNumber) {
@@ -148,7 +129,7 @@ dkr.missingRequiredFieldsHandler.handleSpecialFields = function (nextField) {
 
 
 //#region Modal dialog watcher / and tab handler
-dkr.missingRequiredFieldsHandler.MutationCallback = function (mutationList, observer) {
+dkr.missingRequiredFieldsHandler.MutationCallback = async function (mutationList, observer) {
   dkr.missingRequiredFieldsHandler.observerCounter++;
   console.log("Missing required field observer counter " + dkr.missingRequiredFieldsHandler.observerCounter);
 
@@ -199,21 +180,25 @@ dkr.missingRequiredFieldsHandler.MutationCallback = function (mutationList, obse
     alert("Label for 'row' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
     return
   }
-  let itemListFields = []
-  errorContainer.forEach((item) => {
+  let itemListFields = [];
+  
+  // Loading the model once so that we can reuse it later
+  (await ccls.utils.getLiteModel());
+  errorContainer.forEach( (item) =>{
     let displayName = item.getAttribute("data-key").substring(0, item.getAttribute("data-key").length - 1);
     itemListName = displayName.match("(.*), " + rowLabel + " \\d+");
     if (itemListName != null && itemListName.length == 2) displayName = itemListName[1];
-    let field = dkr.missingRequiredFieldsHandler.versionValues.getFieldFromControls(displayName);
-    if (field != null) {
-      if (field.fieldName.indexOf("SubElems") == 0) {
-        itemListFields.push(field.fieldName);
-      }
-      else {
-        dkr.missingRequiredFieldsHandler.erroneousFields.push(field.fieldName)
-      }
-      console.log("Adding required field :" + field.fieldName)
-    }
+    dkr.missingRequiredFieldsHandler.versionValues.getFieldFromControls(displayName).then((field)=> {
+      if (field != null) {
+          if (field.fieldName.indexOf("SubElems") == 0) {
+            itemListFields.push(field.fieldName);
+          }
+          else {
+            dkr.missingRequiredFieldsHandler.erroneousFields.push(field.fieldName)
+          }
+          console.log("Adding required field :" + field.fieldName)
+        }
+    });
   })
 
   // I have no idea how to switch to another field if we have an error in a item list using tabs. So lets add the item lists at the end.

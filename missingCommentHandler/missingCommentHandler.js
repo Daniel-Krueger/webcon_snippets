@@ -85,7 +85,7 @@ dkr.missingCommentHandler.MutationCallback = async function (mutationList, obser
 
   errorContainer[1].insertAdjacentHTML('afterend', '<div id="newComment"><textarea id="newCommentText" class="text-area standard-focus wfFormControl form-control" rows="5" cols="20" ></textarea></div>');
   let pathTitle = errorMessage.substring(errorMessage.indexOf(':') + 1);
-  let uiPathDefinition = (await ccls.utils.getLiteModel()).paths.filter(item => item.title == pathTitle.trim());
+  let uiPathDefinition = ccls.utils.basicPathInformation.filter(item => item.title == pathTitle.trim());
 
   let closeButton = $(".form-error-modal__close-button", modalErrorDialog);
   closeButton.hide();

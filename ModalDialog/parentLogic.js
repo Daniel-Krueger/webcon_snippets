@@ -113,12 +113,16 @@ ccls.modal.dialog.customClosingFunction = undefined;
 ccls.modal.dialog.close = function (parameters) {
   ccls.modal.dialog.startDebugger();
   document.getElementById("cclsModaliframe").contentWindow.postMessage(new Message("parentClosing", parameters));
-  ccls.modal.dialog.closingTimeout = setTimeout(ccls.modal.dialog.childClosed, 100, parameters)
+  ccls.modal.dialog.closingTimeout = setTimeout(() => {
+    console.log('Closing modal due to timeout');
+    ccls.modal.dialog.childClosed(parameters);
+  }, 100);
 };
 ccls.modal.dialog.childClosed = function (parameters) {
   clearTimeout(ccls.modal.dialog.closingTimeout);
   document.getElementById('cclsModal').style.display = "none";
-  document.getElementById("cclsModaliframe").src = "about:blank";
+  // Caused checkout errors in BPS 2023 R2. Needs to be revisited at later version.
+  //document.getElementById("cclsModaliframe").src = "about:blank";
 
   // If we refresh the page, we don't need to execute individual refreshs.
   if (ccls.modal.dialog.customClosingFunction == ccls.modal.dialog.closeFunctions.executeRefreshButton) {
@@ -127,6 +131,9 @@ ccls.modal.dialog.childClosed = function (parameters) {
   }
 
   // Will trigger reload of any data tables.
+  // switched from element.click()  to  setTimeout(() => { element.click() }, index * 122) and used a random "random" interval
+  // executing the refresh button simultaneously  breaks the refresh as of BPS 2023 R2
+  //  Needs to be revisited at later version.
   $(".reload-button-container").find("button").each((index, element) => { element.click() });
   $(".reload-button-container").find("span").each((index, element) => { element.click() });
   if (typeof (ccls.modal.dialog.customClosingFunction) == 'function') {
@@ -357,7 +364,15 @@ class Message {
     this.body = body;
   }
 }
-window.addEventListener("message", (e) => {
+
+
+// Remove all event listeners, to ensure there's only a single one.
+//document.removeEventListener("keydown", dkr.missingRequiredFieldsHandler.tabEventListener);  
+if (typeof (ccls.modal.dialog.abortController) !== "undefined") {
+  ccls.modal.dialog.abortController.abort("Cleaning up parent logic post message handler");
+}
+ccls.modal.dialog.abortController = new AbortController();
+ccls.modal.dialog.parentMessageHandler = function (e) {
   let data = e.data;
   if (data.type == "fullUrl") {
     if (data.body.url.indexOf("?") > -1) {
@@ -372,7 +387,9 @@ window.addEventListener("message", (e) => {
     ccls.modal.dialog.childClosed(data.body)
 
   }
-});
+}
+document.addEventListener("keydown", ccls.modal.dialog.parentMessageHandler, { signal: ccls.modal.dialog.abortController.signal });
+
 //#endregion
 
 //the last line of a script must not be a comment

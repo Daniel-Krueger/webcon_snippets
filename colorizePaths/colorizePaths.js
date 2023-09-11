@@ -42,7 +42,7 @@ Zielony: Pozytywne działanie, posunie naprzód przepływ pracy
 ccls.colorizePaths.colorize = async function (debug, retryCounter) {
     if (debug == true) debugger;
     if (typeof (retryCounter) === "undefined") retryCounter = 0;
-    if (ccls.colorizePaths.webconData != "") {
+    if (ccls.utils.basicPathInformation  != "") {
         // Placing the html field in the bottom panel won't require the timeout to be executed, it's just a safety measure.
         var availablePathsElement = document.getElementsByClassName("wfPathPanelCaption");
         if (availablePathsElement.length == 0) {
@@ -54,29 +54,22 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
             return;
         }
 
-        let pathInformation = JSON.parse(
-            ccls.colorizePaths.webconData.replace(",]", "]")
-        );
-
+        if (ccls.colorizePaths.webconData == ''){
+            ccls.colorizePaths.webconData = ccls.utils.basicPathInformation;
+        }
         let pathButtons = document.getElementsByClassName("pathPanelButton");
-        let paths = (await ccls.utils.getLiteModel()).paths;
         for (let i = 0; i < pathButtons.length; i++) {
             let currentButton = pathButtons[i];
             if (currentButton.id == 'ccls_SavePathButton')
                 continue;
-            let uiPathDefinition = paths.filter(item => item.title == currentButton.value);
+            let uiPathDefinition = ccls.colorizePaths.webconData.filter(item => item.title == currentButton.value);
             if (uiPathDefinition.length != 1) {
-                console.log(`initModel did not containt a path with a title '${currentButton.value}'; this shouldn't happen.`);
+                console.log(`Basic path information did not containt a path with a title '${currentButton.value}'; this shouldn't happen.`);
                 continue;
             }
-            let currentPathInformation = pathInformation.filter(item => item.id == uiPathDefinition[0].id);
-            if (currentPathInformation.length != 1) {
-                console.log(`The business rule did not return path information of path id '${uiPathDefinition.id}' and name '${uiPathDefinition.databaseName}'`);
-                continue;
-            }
-            let pathStyling = ccls.colorizePaths.buttonStyling[currentPathInformation[0].color];
+            let pathStyling = ccls.colorizePaths.buttonStyling[uiPathDefinition[0].color];
             if (pathStyling == null) {
-                console.log(`No styling is defined for color '${currentPathInformation[0].color}' which has been returned for path id '${uiPathDefinition.id}' and name '${uiPathDefinition.databaseName}'`);
+                console.log(`No styling is defined for color '${uiPathDefinition[0].color}' which has been returned for path id '${uiPathDefinition.id}' and name '${uiPathDefinition.databaseName}'`);
                 continue;
             }
             currentButton.classList.add(pathStyling.class);
