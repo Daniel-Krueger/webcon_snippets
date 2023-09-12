@@ -15,7 +15,7 @@ select '['+
             (
                   /* Returning the path information */
                   select Path_ID, PATH_Name, Convert(xml,PATH_DesignerData)  as XmlData
-                  from WFAvaiblePaths where PATH_STPID = /*{STP_ID}*/ 176
+                  from WFAvaiblePaths where PATH_STPID = {STP_ID}
             ) temp
      FOR XML PATH('')
   )
