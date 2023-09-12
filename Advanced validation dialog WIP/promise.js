@@ -78,6 +78,8 @@ ccls.confirmationDialog.newPromise = function () {
   modals.innerHTML = insertHtml;
   let modalContentElement = document.getElementById("modalContent");
   modalContentElement.insertAdjacentElement("beforeend", ccls.confirmationDialog.group.firstChild);
+  // $elements= $(ccls.confirmationDialog.group.firstChild).clone(true)
+  // $elements.appendTo(modalContentElement)
   ccls.confirmationDialog.promise = new Promise((resolve, reject) => {
     ccls.confirmationDialog.promiseResolve = resolve;
     ccls.confirmationDialog.promiseReject = reject;
@@ -86,7 +88,7 @@ ccls.confirmationDialog.newPromise = function () {
 };
 
 ccls.confirmationDialog.init = function () {
-  ccls.confirmationDialog.group.style.display = "none";
+  // ccls.confirmationDialog.group.style.display = "none";
   $(".header-panel__header", $(ccls.confirmationDialog.group)).hide();
 }
 
