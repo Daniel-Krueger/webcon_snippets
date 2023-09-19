@@ -241,7 +241,7 @@ ccls.modal.dialog.getSearchParams = function (searchParametersAsString) {
   for (const parameter in searchParameters) {
     let parameterValue = searchParameters[parameter];
     if (parameterValue.toString().indexOf("WFD_") > -1) {
-      parameterValue = GetValue(parameterValue);
+      parameterValue = GetValue(parameterValue.replace("WFD_",""));
     }
     urlSearchParams.append(parameter, encodeURIComponent(parameterValue))
   }
