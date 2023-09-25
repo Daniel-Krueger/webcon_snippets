@@ -21,6 +21,7 @@ dkr.global.hideNavigation.hideConfiguration = {
         , "dashboards": [96]
         , "views": [96]
         , "analyze": [96]
+        , "forMe": [96]
         , "explore": [96]
     },
     "11": {
@@ -28,6 +29,7 @@ dkr.global.hideNavigation.hideConfiguration = {
         , "dashboards": [8]
         , "views": [8]
         , "analyze": [8]
+        , "forMe": [8]
         , "explore": [8]
     }
 }
