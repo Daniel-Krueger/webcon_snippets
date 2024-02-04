@@ -38,13 +38,15 @@ switch (window.initModel.userLang.substr(0, 2)) {
 ccls.breadcrumb.navigateTo = async function (appId, elementId) {
   if (!ccls.utils.continueAlsoPageIsDirty) return;
   let dbId = ccls.utils.getIdFromUrl('db');
+  
   // We can not fetch the application from the URL because it's not part of the URL from the global task overview.
   // Only the db and element are part of the URL /tasks/db/3/element/2758/form  
-  let currentElementId = ccls.utils.getIdFromUrl('element');
+  let currentAppId =  appId > 0 ? appId : (await ccls.utils.getLiteModel()).formInfo.applicationId;
+  
+  let currentElementId = elementId > 0? elementId : ccls.utils.getIdFromUrl('element');
   // Release current document if in edit mode
   if (G_EDITVIEW == true) {
-    let options = {
-      method: 'GET',
+    let options = {method: 'GET',
       headers: {}
     };
     // We don't need the result.
