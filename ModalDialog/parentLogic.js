@@ -154,7 +154,7 @@ ccls.modal.dialog.displayAttachment = function (title, parameters, dimensions) {
   ccls.modal.dialog.internalOpen('"default":"' + title + '"', url, dimensions, null, false)
 }
 
-ccls.modal.dialog.displayExternalPage = function (title, url, dimensions) {
+ccls.modal.dialog.displayUrl = function (title, url, dimensions) {
   ccls.modal.dialog.startDebugger();
   ccls.modal.dialog.internalOpen('"default":"' + title + '"', url, dimensions, null, false);
 }
@@ -291,6 +291,7 @@ ccls.modal.dialog.toggleExpand = function () {
 
 ccls.modal.dialog.replaceWindow = function () {
   ccls.modal.dialog.startDebugger();
+  ccls.modal.dialog.close();
   //if (!ccls.utils.continueAlsoPageIsDirty()) return;
   if (ccls.modal.dialog.replaceWindowBehavior == "workflowInstance") {
     document.getElementById("cclsModaliframe").contentWindow.postMessage(new Message("sendURL", null));

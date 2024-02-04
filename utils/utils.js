@@ -16,9 +16,11 @@ ccls.utils.getGlobal = function (variableName) {
       const interval = setInterval(() => {
         if (counter > 50) { // 1 second
           console.log("GetGlobal hit max iteration of 50!!!");
+          resolve(null);
           clearInterval(interval);
         }
         console.log("Getglobal counter value: " + counter);
+        counter++;
         if (typeof window[variableName] !== 'undefined') {
           clearInterval(interval);
           resolve(window[variableName]);
@@ -79,7 +81,10 @@ ccls.utils.getLiteModel = async function () {
     method: "GET",
     headers: ccls.utils.getFetchHeaders(),
   };
-  if ((await (ccls.utils.getGlobal('G_ISNEW')))) {
+  
+  let editMode = await (ccls.utils.getGlobal('G_EDITMODE'))
+  // G_IsNew is not always available so we can not rely on getGlobal that the value is retrieved.
+  if (editMode != null & window["G_ISNEW"] == true) {
     const searchParams = new URLSearchParams(document.location.search);
     url = `/api/nav/db/${ccls.utils.getIdFromUrl('db')}/start/wf/${ccls.utils.getIdFromUrl('wf')}/dt/${ccls.utils.getIdFromUrl('dt')}/desktop?${searchParams.has("com_id") ? 'com_id=' + searchParams.get("com_id") : ''}`
   }

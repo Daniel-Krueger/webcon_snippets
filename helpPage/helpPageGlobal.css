@@ -1,0 +1,26 @@
+/* Help button css start */
+button.helpPage:disabled {
+  cursor: not-allowed;
+  opacity: 25%;
+}
+
+button.helpPage {
+  cursor: pointer;
+  border-radius: 50%;
+  display: none;
+  float: right;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent; 
+  border-color: rgb(255, 164, 53);
+  position: fixed;
+  top: 60px;
+  right: 25px;
+  z-index: 5;
+
+}
+
+button.helpPage>i {
+  font-weight: bold;
+}
+/* Help button css end */
