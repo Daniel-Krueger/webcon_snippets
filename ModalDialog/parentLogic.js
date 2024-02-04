@@ -138,8 +138,9 @@ ccls.modal.dialog.childClosed = function (parameters) {
 //#endregion
 
 //#region functions to display the dialog
+//ccls.modal.dialog.displayAttachment('dialog title', {"dbId":1,"attachmentId":456});
 ccls.modal.dialog.displayAttachment = function (title, parameters, dimensions) {
-  // parameters {"dbId":1,"attachmentId":456};
+  
   if (parameters == null) {
     console.log("No parameters have been provided");
     return;
@@ -154,6 +155,7 @@ ccls.modal.dialog.displayAttachment = function (title, parameters, dimensions) {
   ccls.modal.dialog.internalOpen('"default":"' + title + '"', url, dimensions, null, false)
 }
 
+//ccls.modal.dialog.displayAttachment('dialog title', 'https://example.com');
 ccls.modal.dialog.displayUrl = function (title, url, dimensions) {
   ccls.modal.dialog.startDebugger();
   ccls.modal.dialog.internalOpen('"default":"' + title + '"', url, dimensions, null, false);
