@@ -25,6 +25,88 @@ dkr.missingCommentHandler.continueBtnLabel = {
 }
 //#endregion
 
+
+dkr.missingCommentHandler.VersionDependingValues = [
+  {
+    version: '0.0.0.0',
+    values: {
+      modifyErrorPanel: function () {
+        // The first container is "Validation error" and the "second container" any error. 
+        // If there's more than two elements (one error), not only the comment is missing, which need to be corrected.
+        let errorContainer = document.querySelectorAll(".form-error-modal div.form-errors-panel__errors-container__error");
+
+        if (errorContainer.length != 2) {
+          return;
+        }
+
+        let modalErrorDialog = document.querySelector(".form-error-modal");
+
+        let errorText = dkr.missingCommentHandler.missingCommentErrorLabel[window.initModel.userLang.substr(0, 2)]
+        if (!errorText) {
+          alert("Label for 'missing comment on path' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
+          return
+        }
+        let continueBtnLbl = dkr.missingCommentHandler.continueBtnLabel[window.initModel.userLang.substr(0, 2)]
+
+        let errorMessage = errorContainer[1].getAttribute('data-key');
+
+        // It's not a missing comment error
+        if (!errorMessage.startsWith(errorText)) return;
+
+        errorContainer[1].insertAdjacentHTML('afterend', '<div id="newComment"><textarea id="newCommentText" class="text-area standard-focus wfFormControl form-control" rows="5" cols="20" ></textarea></div>');
+        let pathTitle = errorMessage.substring(errorMessage.indexOf(':') + 1);
+        let uiPathDefinition = ccls.utils.basicPathInformation.filter(item => item.title == pathTitle.trim());
+
+        let closeButton = $(".form-error-modal__close-button", modalErrorDialog);
+        closeButton.hide();
+        let buttonHtml = `<button id="missingCommentContinueButton" onClick="dkr.missingCommentHandler.tryAgainPathExecution(${uiPathDefinition[0].id})" class="webcon-button animated standard-focus form-error-modal__close-button modal-button th-button-default webcon-button--padding-default standard-focus" data-key="${continueBtnLbl}" tabindex="0" type="button"><div class="typography typography-font-size-standard webcon-button__title">${continueBtnLbl}</div></button>`;
+        closeButton[0].insertAdjacentHTML('afterend', buttonHtml);
+      }
+
+    }
+  }, {
+    version: '2023.1.3.29',
+    values: {
+      modifyErrorPanel: function () {
+        // The first container is "Validation error" and the "second container" any error. 
+        // If there's more than two elements (one error), not only the comment is missing, which need to be corrected.
+        let errorContainer = document.querySelectorAll(".form-errors-panel div.form-errors-panel__errors-container__error");
+
+        if (errorContainer.length != 1) {
+          return;
+        }
+
+        let modalErrorDialog = document.querySelector(".form-error-modal");
+
+        let errorText = dkr.missingCommentHandler.missingCommentErrorLabel[window.initModel.userLang.substr(0, 2)]
+        if (!errorText) {
+          alert("Label for 'missing comment on path' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
+          return
+        }
+        let continueBtnLbl = dkr.missingCommentHandler.continueBtnLabel[window.initModel.userLang.substr(0, 2)]
+
+        let errorMessage = errorContainer[0].children[1].getAttribute('data-key');
+
+        // It's not a missing comment error
+        if (!errorMessage.startsWith(errorText)) return;
+
+        errorContainer[0].insertAdjacentHTML('afterend', '<div id="newComment"><textarea id="newCommentText" class="text-area standard-focus wfFormControl form-control" rows="5" cols="20" ></textarea></div>');
+        let pathTitle = errorMessage.substring(errorMessage.indexOf(':') + 1);
+        let uiPathDefinition = ccls.utils.basicPathInformation.filter(item => item.title == pathTitle.trim());
+
+        let closeButton = $(".form-error-modal__close-button", modalErrorDialog);
+        closeButton.hide();
+        let buttonHtml = `<button id="missingCommentContinueButton" onClick="dkr.missingCommentHandler.tryAgainPathExecution(${uiPathDefinition[0].id})" class="webcon-button animated standard-focus form-error-modal__close-button modal-button th-button-default webcon-button--padding-default standard-focus" data-key="${continueBtnLbl}" tabindex="0" type="button"><div class="typography typography-font-size-standard webcon-button__title">${continueBtnLbl}</div></button>`;
+        closeButton[0].insertAdjacentHTML('afterend', buttonHtml);
+
+
+      }
+    }
+  }
+];
+dkr.missingCommentHandler.versionValues = ccls.utils.getVersionValues(dkr.missingCommentHandler.VersionDependingValues);
+
+
 dkr.missingCommentHandler.tryAgainPathExecution = function (pathId) {
   //debugger;
   let newCommentText = document.getElementById('newCommentText');
@@ -61,36 +143,8 @@ dkr.missingCommentHandler.MutationCallback = async function (mutationList, obser
   // observer.disconnect(); is not used because the user may close the modal dialog via X, would not provide a comment and we have to check it again.
   if (document.getElementById("newComment") != null) return;
 
-  // The first container is "Validation error" and the "second container" any error. 
-  // If there's more than two elements (one error), not only the comment is missing, which need to be corrected.
-  let errorContainer = document.querySelectorAll(".form-error-modal div.form-errors-panel__errors-container__error");
+  dkr.missingCommentHandler.versionValues.modifyErrorPanel();
 
-  if (errorContainer.length != 2) {
-    return;
-  }
-
-  let modalErrorDialog = document.querySelector(".form-error-modal");
-
-  let errorText = dkr.missingCommentHandler.missingCommentErrorLabel[window.initModel.userLang.substr(0, 2)]
-  if (!errorText) {
-    alert("Label for 'missing comment on path' is not defined for language :'" + window.initModel.userLang.substr(0, 2));
-    return
-  }
-  let continueBtnLbl = dkr.missingCommentHandler.continueBtnLabel[window.initModel.userLang.substr(0, 2)]
-
-  let errorMessage = errorContainer[1].getAttribute('data-key');
-
-  // It's not a missing comment error
-  if (!errorMessage.startsWith(errorText)) return;
-
-  errorContainer[1].insertAdjacentHTML('afterend', '<div id="newComment"><textarea id="newCommentText" class="text-area standard-focus wfFormControl form-control" rows="5" cols="20" ></textarea></div>');
-  let pathTitle = errorMessage.substring(errorMessage.indexOf(':') + 1);
-  let uiPathDefinition = ccls.utils.basicPathInformation.filter(item => item.title == pathTitle.trim());
-
-  let closeButton = $(".form-error-modal__close-button", modalErrorDialog);
-  closeButton.hide();
-  let buttonHtml = `<button id="missingCommentContinueButton" onClick="dkr.missingCommentHandler.tryAgainPathExecution(${uiPathDefinition[0].id})" class="webcon-button animated standard-focus form-error-modal__close-button modal-button th-button-default webcon-button--padding-default standard-focus" data-key="${continueBtnLbl}" tabindex="0" type="button"><div class="typography typography-font-size-standard webcon-button__title">${continueBtnLbl}</div></button>`;
-  closeButton[0].insertAdjacentHTML('afterend', buttonHtml);
 
 }
 
