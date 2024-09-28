@@ -1,0 +1,9 @@
+public enum AccountType
+{
+	User = 1,
+	BpsGroup,
+	SpGroup,
+	AdGroup,
+	BpsSecurityGroup,
+	ApiApplication
+}
