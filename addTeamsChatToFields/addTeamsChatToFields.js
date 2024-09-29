@@ -12,9 +12,16 @@ dkr.addTeamsChatToFields.getUserUPNsBusinessRuleName = "GetUserUPNs"
 dkr.addTeamsChatToFields.userFields = []
 
 dkr.addTeamsChatToFields.updateFields = function () {
-    dkr.addTeamsChatToFields.userFields.forEach(dkr.addTeamsChatToFields.wrapInAnchor );
+    // We need to execute it in a timeout, in case this function is called inside a form rule which would show/hide fields.
+    // In this case the fields are not yet part of the DOM and we need to try a few times.
+    dkr.addTeamsChatToFields.userFields.forEach((elementId) => {
+        setTimeout(dkr.addTeamsChatToFields.wrapInAnchor(elementId, 1, 4), 10)
+    }
+    );
 }
-dkr.addTeamsChatToFields.wrapInAnchor = function (elementId) {
+
+// The max tries should only be triggered, if the field is part of a hidden tab/collapsed group.
+dkr.addTeamsChatToFields.wrapInAnchor = function (elementId, counter, maxTries) {
     // Get the div by its ID
     const divElement = document.getElementById(elementId);
 
@@ -25,18 +32,26 @@ dkr.addTeamsChatToFields.wrapInAnchor = function (elementId) {
         if (spanElement && spanElement.parentElement.className != 'dkrTeamsLink') {
             const anchor = document.createElement('a');
             anchor.className = "dkrTeamsLink"
-            anchor.onclick  = (elementId) => {dkr.addTeamsChatToFields.startChat(elementId);};
-            anchor.onclick  = (function(id) {
-                return function() {
-                  dkr.addTeamsChatToFields.startChat(id);
+            anchor.onclick = (elementId) => { dkr.addTeamsChatToFields.startChat(elementId); };
+            anchor.onclick = (function (id) {
+                return function () {
+                    dkr.addTeamsChatToFields.startChat(id);
                 };
-              })(elementId);
+            })(elementId);
             // Replace the span with the anchor in the DOM
             spanElement.parentElement.appendChild(anchor)
-            anchor.insertAdjacentHTML("afterbegin",'<i class="icon ms-Icon ms-Icon--TeamsLogo ms-Icon--small form-status-panel__icon" aria-hidden="true" data-disabled="false"></i>');
+            anchor.insertAdjacentHTML("afterbegin", '<i class="icon ms-Icon ms-Icon--TeamsLogo ms-Icon--small form-status-panel__icon" aria-hidden="true" data-disabled="false"></i>');
             anchor.appendChild(spanElement);
-        } 
-    } 
+        }
+    }
+    else {
+        if (counter <= maxTries) {
+            setTimeout(() => {
+                counter++;
+                dkr.addTeamsChatToFields.wrapInAnchor(elementId, counter, maxTries);
+            }, 10);
+        }
+    }
 }
 
 dkr.addTeamsChatToFields.replaceUserWithTeamsLink = async function () {
