@@ -71,8 +71,10 @@ dkr.addTeamsChatToTasks.replaceUserWithTeamsLink = async function () {
         Object.keys(dkr.addTeamsChatToTasks.taskList).forEach(key => {
             let task = dkr.addTeamsChatToTasks.taskList[key];
             let message = dkr.addTeamsChatToTasks.message || "";
-            if (dkr.addTeamsChatToTasks.addUrlToMessage) {
-                message += " " + document.location.href.substring(0, document.location.href.length - document.location.search.length)
+            if (dkr.addTeamsChatToFields.addUrlToMessage) {
+                let url = document.location.href.substring(0, document.location.href.length - document.location.search.length)
+                url = url.replace('edit','').replace('admin','')
+                message += " " + url        
             }
             let taskDiv = document.querySelector(`div[data-task-id='${task.taskId}'] .form-status-panel`, infoPanel)
             taskDiv.insertAdjacentHTML("beforeEnd",

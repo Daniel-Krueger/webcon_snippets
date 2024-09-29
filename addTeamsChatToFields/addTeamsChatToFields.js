@@ -32,6 +32,7 @@ dkr.addTeamsChatToFields.wrapInAnchor = function (elementId, counter, maxTries) 
         if (spanElement && spanElement.parentElement.className != 'dkrTeamsLink') {
             const anchor = document.createElement('a');
             anchor.className = "dkrTeamsLink"
+            anchor.style.whiteSpace= "nowrap"
             anchor.onclick = (elementId) => { dkr.addTeamsChatToFields.startChat(elementId); };
             anchor.onclick = (function (id) {
                 return function () {
@@ -54,41 +55,6 @@ dkr.addTeamsChatToFields.wrapInAnchor = function (elementId, counter, maxTries) 
     }
 }
 
-dkr.addTeamsChatToFields.replaceUserWithTeamsLink = async function () {
-    const infoPanel = document.querySelector(".formElementInfoPanel")
-    if (infoPanel != null) {
-        if (dkr.addTeamsChatToFields.taskList == null) {
-            await dkr.addTeamsChatToFields.createTaskList();
-        }
-        if (dkr.addTeamsChatToFields.taskList == null) {
-            return;
-        }
-        Object.keys(dkr.addTeamsChatToFields.taskList).forEach(key => {
-            let task = dkr.addTeamsChatToFields.taskList[key];
-            let message = dkr.addTeamsChatToFields.message || "";
-            if (dkr.addTeamsChatToFields.addUrlToMessage) {
-                message += " " + document.location.href.substring(0, document.location.href.length - document.location.search.length)
-            }
-            let taskDiv = document.querySelector(`div[data-task-id='${task.taskId}'] .form-status-panel`, infoPanel)
-            taskDiv.insertAdjacentHTML("beforeEnd",
-                `
-                <i class="icon ms-Icon ms-Icon--TeamsLogo ms-Icon--small form-status-panel__icon" aria-hidden="true" data-disabled="false"></i>                
-                <a href="${dkr.addTeamsChatToFields.useWebApp ? "https://teams.microsoft.com" : "msteams:"}/l/chat/0/0?users=${task.userLogin}&message=${encodeURIComponent(message)}" ${dkr.addTeamsChatToFields.useWebApp ? 'target="_blank"' : null}>
-                </a>
-                `);
-            // 
-            let taskSpanElement = taskDiv.querySelector("span");
-            taskSpanElement.style.minWidth = "100%";
-            // Move the existing span into the a element after the icon.
-            taskDiv.querySelector("a").appendChild(taskSpanElement);
-
-        });
-    }
-
-
-}
-
-
 dkr.addTeamsChatToFields.startChat = function (currentField) {
 
     const fieldValue = GetPairID(GetValue(currentField));
@@ -110,10 +76,13 @@ dkr.addTeamsChatToFields.openTeamsUrl = function (users) {
 
     console.log(`Starting teams chat for users: '${users}'`)
 
-    let usersParameter = encodeURIComponent(users.replace(';', ','))
+    let usersParameter = encodeURIComponent(users.replaceAll(';', ','))
+    //let usersParameter = users.replace(';', ',')
     let message = dkr.addTeamsChatToFields.message || "";
     if (dkr.addTeamsChatToFields.addUrlToMessage) {
-        message += " " + document.location.href.substring(0, document.location.href.length - document.location.search.length)
+        let url = document.location.href.substring(0, document.location.href.length - document.location.search.length)
+        url = url.replace('edit','').replace('admin','')
+        message += " " + url        
     }
     if (dkr.addTeamsChatToFields.useWebApp) {
         window.open(`https://teams.microsoft.com:/l/chat/0/0?users=${usersParameter}&message=${encodeURIComponent(message)}`, "_blank")
