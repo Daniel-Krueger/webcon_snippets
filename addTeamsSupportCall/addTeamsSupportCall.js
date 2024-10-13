@@ -33,7 +33,6 @@ dkr.teamsSupport.startChat = function (users, customMessage, addUrlToMessage, us
 
 
 dkr.teamsSupport.prepareTeamsSupport = function (counter, maxTries) {
-  console.log("prepareTeamsSupport:"+counter)
   if (dkr.teamsSupport.recipients == null || dkr.teamsSupport.recipients == '') {
     return;
 
@@ -44,7 +43,7 @@ dkr.teamsSupport.prepareTeamsSupport = function (counter, maxTries) {
       setTimeout(() => {
         counter++;
         dkr.teamsSupport.prepareTeamsSupport(counter, maxTries);
-      }, 50)
+      }, 75)
 
     }
     return;
