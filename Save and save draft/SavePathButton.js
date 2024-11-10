@@ -10,6 +10,31 @@ ccls.addSaveButtonAsPath.TimeoutMax = 4;
 ccls.addSaveButtonAsPath.saveButtonId = "SaveToolbarButton";
 ccls.addSaveButtonAsPath.saveButton = null;
 
+ccls.addSaveButtonAsPath.VersionDependingValues = [
+    {
+        version: '0.0.0.0',
+        values: {
+            'buttonClasses': 'btn btn-default btn-md form-button pathPanelButton',
+            'isNewInstance': function () { return G_WFELEM === '0#' }
+
+        }
+    }
+    , {
+        version: '2024.1.1.1',
+        values: {
+            'buttonClasses': 'btn btn-default btn-md form-button pathPanelButton',
+            'isNewInstance': function () { return G_WFELEM === null }
+        }
+    }
+    , {
+        version: '2024.1.1.1',
+        values: {
+            'buttonClasses': 'webcon-ui button button--default button--medium form-button pathPanelButton',
+            'isNewInstance': function () { return G_WFELEM === null }
+        }
+    }
+];
+ccls.addSaveButtonAsPath.versionValues = ccls.utils.getVersionValues(ccls.addSaveButtonAsPath.VersionDependingValues);
 // Define the label of the path
 switch (window.initModel.userLang.substring(0, 2)) {
     case "de":
@@ -36,7 +61,7 @@ ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel) {
     }
 
     // return, if we are not in edit mode or this is a new element.
-    if (!(await ccls.utils.getGlobal('G_EDITVIEW')) || G_WFELEM.startsWith("0")) {
+    if (!(ccls.utils.getGlobal("G_EDITVIEW") || ccls.addSaveButtonAsPath.versionValues.isNewInstance())) {
         return;
     }
 
@@ -61,7 +86,7 @@ ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel) {
     let colorizePathClass = '';
     if (typeof (ccls.colorizePaths) !== "undefined") {
         ccls.colorizePaths.darkThemes = [
-            "a24dcfc2-2b14-4de8-8af3-7952a0a2cf61",//WEBCON Dark
+            "a24dcfc2-2b14-4de8-8af3-7952a0a2cf61",//WEBCON Dark            
             "6ec43cab-2ccf-438a-b0be-54388d7b43be",//CC Dark 
 
         ];
@@ -71,7 +96,7 @@ ccls.addSaveButtonAsPath.createPathButton = async function (alternativeLabel) {
     // creating a dummy element and insert the default html code for a path button
     // the only changes to the default html is the label and the MoveToNextStep function 
     var savePathButton = document.createElement('div');
-    savePathButton.innerHTML = `<div class="path-button-container"><button id="ccls_SavePathButton" type="button" class="${colorizePathClass} btn btn-default btn-md form-button pathPanelButton"value="${ccls.addSaveButtonAsPath.savePathLabel}" onClick="document.getElementById(ccls.addSaveButtonAsPath.saveButtonId).click();" style="">  <div class="form-button__title">${ccls.addSaveButtonAsPath.savePathLabel}</div> </button></div>`;
+    savePathButton.innerHTML = `<div class="path-button-container"><button id="ccls_SavePathButton" type="button" class="${colorizePathClass} ${ccls.addSaveButtonAsPath.versionValues.buttonClasses}" value="${ccls.addSaveButtonAsPath.savePathLabel}" onClick="document.getElementById(ccls.addSaveButtonAsPath.saveButtonId).click();" style="">  <div class="form-button__title">${ccls.addSaveButtonAsPath.savePathLabel}</div> </button></div>`;
 
     if (pathPanelRow == null || pathPanelRow.length != 1) {
         console.log("Can not add save path button, path panel row was not found.");

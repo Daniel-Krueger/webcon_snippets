@@ -10,26 +10,69 @@ ccls.addSaveDraftButton.VersionDependingValues = [
     {
         version: '0.0.0.0',
         values: {
-            'buttonClasses': "webcon-button toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"
+            'isNewInstance': function () { return G_WFELEM === '0#' },
+            'getButtonHtml': function (pathId) {
+                return `<div class="toolbar-button__wrapper">
+<button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="webcon-button toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"  onclick="MoveToNextStep(${pathId})" >
+    <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+    <div class="typography typography-font-size-standard webcon-button__title">${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
+</button>
+</div>
+`;
+            }
         }
-    }, {
+    }
+    , {
         version: '2023.1.1.1',
         values: {
-            'buttonClasses': "webcon-button toolbar-button__wrapper--toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"
+            'isNewInstance': function () { return G_WFELEM === '0#' },
+            'getButtonHtml': function (pathId) {
+                return `<div class="toolbar-button__wrapper">
+<button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="webcon-button toolbar-button__wrapper--toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"  onclick="MoveToNextStep(${pathId})" >
+    <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+    <div class="typography typography-font-size-standard webcon-button__title">${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
+</button>
+</div>
+`;
+            }
         }
     }
-    // Just a test to check that this works
     , {
-        version: '2023.1.2.1',
+        version: '2024.1.1.1',
         values: {
-            'buttonClasses': "webcon-button toolbar-button__wrapper--toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"
+            'isNewInstance': function () { return G_WFELEM === null },
+            'getButtonHtml': function (pathId) {
+                return `<div class="toolbar-button__wrapper">
+<button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="webcon-button toolbar-button__wrapper--toolbar-button webcon-button--padding-medium standard-focus webcon-button--icon-button no-background th-hover"  onclick="MoveToNextStep(${pathId})" >
+    <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+    <div class="typography typography-font-size-standard webcon-button__title">${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
+</button>
+</div>
+`;
+            }
         }
     }
+    , {
+        version: '2025.1.1.1',
+        values: {
+            'isNewInstance': function () { return G_WFELEM === null },
+            'getButtonHtml': function (pathId) {
+                return `<div class="toolbar-button__wrapper">
+<button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="webcon-ui button button--subtle button--medium toolbar-button__button"  onclick="MoveToNextStep(${pathId})" >
+    <span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content">
+        <i class="icon ms-Icon ms-Icon--Reply ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
+    </span>
+</button>
+</div>
+`;
+            }
+        }
+    }
+
 ];
 //#endregion
 
 ccls.addSaveDraftButton.versionValues = ccls.utils.getVersionValues(ccls.addSaveDraftButton.VersionDependingValues);
-ccls.addSaveDraftButton.buttonClasses = ccls.addSaveDraftButton.versionValues.buttonClasses;
 
 ccls.addSaveDraftButton.saveButton = null;
 // Define the label of the path
@@ -57,9 +100,9 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
     pathId = parseInt(pathId);
     // if this is a an existing element: hide the save draft path and return
 
-    if (!(await ccls.utils.getGlobal('G_EDITVIEW')) || !(G_WFELEM === '0#')) {
+    if ((await ccls.utils.getGlobal('G_EDITVIEW')) && !ccls.addSaveDraftButton.versionValues.isNewInstance()) {
         // hide path in "available paths" buttons" group
-        let paths =  ccls.utils.basicPathInformation;
+        let paths = ccls.utils.basicPathInformation;
         if (paths.length > 0) {
             let draftPath = paths.find(i => i.id == pathId);
             if (draftPath !== undefined) {
@@ -89,13 +132,7 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
     // creating a dummy element and insert the default html code for the save button
     // the only changes to the default html is the label and the MoveToNextStep function 
     var saveButton = document.createElement('div');
-    saveButton.innerHTML = `<div class="toolbar-button__wrapper">
-<button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="${ccls.addSaveDraftButton.buttonClasses}"  onclick="MoveToNextStep(${pathId})" >
-    <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
-    <div class="typography typography-font-size-standard webcon-button__title">${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
-</button>
-</div>
-`;
+    saveButton.innerHTML = ccls.addSaveDraftButton.versionValues.getButtonHtml(pathId);
     var leftToolbar = items[0];
 
     // Get the target position of the draft button
