@@ -7,6 +7,31 @@ ccls.colorizePaths.dummyData =
 
 ccls.colorizePaths.setDummyData = function () { ccls.colorizePaths.webconData = ccls.colorizePaths.dummyData; }
 
+ccls.colorizePaths.VersionDependingValues = [
+    {
+        version: '0.0.0.0',
+        values: {
+            values: {
+                'pathPanelQuerySelector': '.pathPanel',
+                "insertInfoIcon": function (availablePathsPanelElement, iconHtml) {
+                    availablePathsPanelElement.insertAdjacentHTML('afterend', iconHtml);
+                }
+            }
+        }
+    }, {
+
+        version: '2025.1.1.1',
+        values: {
+            'pathPanelQuerySelector': '#pathPanel',
+            "insertInfoIcon": function (availablePathsPanelElement, iconHtml) {
+                availablePathsPanelElement.children[0].children[0].insertAdjacentHTML('beforeEnd', iconHtml);
+            }
+        }
+    }];
+//#endregion
+
+ccls.colorizePaths.versionValues = ccls.utils.getVersionValues(ccls.colorizePaths.VersionDependingValues);
+
 ccls.colorizePaths.documentation = {
     "default": `
 Black: Used by the system
@@ -42,10 +67,10 @@ Zielony: Pozytywne działanie, posunie naprzód przepływ pracy
 ccls.colorizePaths.colorize = async function (debug, retryCounter) {
     if (debug == true) debugger;
     if (typeof (retryCounter) === "undefined") retryCounter = 0;
-    if (ccls.utils.basicPathInformation  != "") {
+    if (ccls.utils.basicPathInformation != "") {
         // Placing the html field in the bottom panel won't require the timeout to be executed, it's just a safety measure.
-        var availablePathsElement = document.getElementsByClassName("wfPathPanelCaption");
-        if (availablePathsElement.length == 0) {
+        var availablePathsElement = document.querySelector(ccls.colorizePaths.versionValues.pathPanelQuerySelector);
+        if (availablePathsElement == null) {
             if (retryCounter < 5) {
                 setTimeout(() => {
                     ccls.colorizePaths.colorize(debug, retryCounter + 1)
@@ -54,10 +79,11 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
             return;
         }
 
-        if (ccls.colorizePaths.webconData == ''){
+        // May be set if it is used in combination with the dummy data
+        if (ccls.colorizePaths.webconData == '') {
             ccls.colorizePaths.webconData = ccls.utils.basicPathInformation;
         }
-        let pathButtons = document.getElementsByClassName("pathPanelButton");
+        let pathButtons = document.querySelectorAll(".pathPanelButton");
         for (let i = 0; i < pathButtons.length; i++) {
             let currentButton = pathButtons[i];
             if (currentButton.id == 'ccls_SavePathButton')
@@ -76,14 +102,16 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
         }
         let userLanguage = window.initModel.userLang.substring(0, 2)
         let documentation = ccls.colorizePaths.documentation[userLanguage] != null ? ccls.colorizePaths.documentation[userLanguage] : ccls.colorizePaths.documentation.default;
-        let html = `<i class="icon ms-Icon ms-Icon--Info ms-Icon--standard descriptionTooltipIcon" aria-hidden="true" data-disabled="false" title="${documentation}" ></i> `
-        availablePathsElement[0].insertAdjacentHTML('afterend', html);
+        let html = `<i class="icon ms-Icon ms-Icon--Info ms-Icon--standard descriptionTooltipIcon" style="padding-left:5px" aria-hidden="true" data-disabled="false" title="${documentation}" ></i> `
+        ccls.colorizePaths.versionValues.insertInfoIcon(availablePathsElement, html);
+        //availablePathsElement.insertAdjacentHTML('afterend', html);
     }
 };
 
 // #endregion
 
 // #region styling
+/* until WEBCON BPS 2025 the colors have been saved with FF -> We need to handle both cases*/
 ccls.colorizePaths.lightThemeStyles = {
     // grey path
     "default":
@@ -93,32 +121,47 @@ ccls.colorizePaths.lightThemeStyles = {
     // blue path
     , "#FF0093DC": {
         "class": "ccls_bluePathButtonLightTheme"
+    }, "#0093DC": {
+        "class": "ccls_bluePathButtonLightTheme"
     }
     // red path
     , "#FFDC002E": {
+        "class": "ccls_redPathButtonLightTheme"
+    }, "#DC002E": {
         "class": "ccls_redPathButtonLightTheme"
     }
     // orange path
     , "#FFFFA500": {
         "class": "ccls_orangePathButtonLightTheme"
     }
-
+    , "#FFA500": {
+        "class": "ccls_orangePathButtonLightTheme"
+    }
     // yellow path
     , "#FFFFFF00": {
         "class": "ccls_yellowPathButtonLightTheme"
+    }, "#FFFF00": {
+        "class": "ccls_yellowPathButtonLightTheme"
     }
+
 
     // green path
     , "#FF9ACD32": {
         "class": "ccls_greenPathButtonLightTheme"
     }
-
+    , "#9ACD32": {
+        "class": "ccls_greenPathButtonLightTheme"
+    }
     // purple path
     , "#FFD1ABE5": {
+        "class": "ccls_purplePathButtonLightTheme"
+    }, "#D1ABE5": {
         "class": "ccls_purplePathButtonLightTheme"
     }
     // black path
     , "#FF000000": {
+        "class": "ccls_blackPathButtonLightTheme"
+    }, "#000000": {
         "class": "ccls_blackPathButtonLightTheme"
     }
 }
@@ -131,32 +174,47 @@ ccls.colorizePaths.darkThemeStyles = {
     // blue path
     , "#FF0093DC": {
         "class": "ccls_bluePathButtonDarkTheme"
+    }, "#0093DC": {
+        "class": "ccls_bluePathButtonDarkTheme"
     }
     // red path
     , "#FFDC002E": {
+        "class": "ccls_redPathButtonDarkTheme"
+    }, "#DC002E": {
         "class": "ccls_redPathButtonDarkTheme"
     }
     // orange path
     , "#FFFFA500": {
         "class": "ccls_orangePathButtonDarkTheme"
     }
+    , "#FFA500": {
+        "class": "ccls_orangePathButtonDarkTheme"
+    }
 
     // yellow path
     , "#FFFFFF00": {
+        "class": "ccls_yellowPathButtonDarkTheme"
+    }, "#FFFF00": {
         "class": "ccls_yellowPathButtonDarkTheme"
     }
 
     // green path
     , "#FF9ACD32": {
         "class": "ccls_greenPathButtonDarkTheme"
+    }, "#9ACD32": {
+        "class": "ccls_greenPathButtonDarkTheme"
     }
 
     // purple path
     , "#FFD1ABE5": {
         "class": "ccls_purplePathButtonDarkTheme"
+    }, "#D1ABE5": {
+        "class": "ccls_purplePathButtonDarkTheme"
     }
     // black path
     , "#FF000000": {
+        "class": "ccls_blackPathButtonDarkTheme"
+    }, "#000000": {
         "class": "ccls_blackPathButtonDarkTheme"
     }
 }
