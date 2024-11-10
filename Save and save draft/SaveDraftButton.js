@@ -100,7 +100,7 @@ ccls.addSaveDraftButton.createSaveDraftButton = async function (pathId, alternat
     pathId = parseInt(pathId);
     // if this is a an existing element: hide the save draft path and return
 
-    if ((await ccls.utils.getGlobal('G_EDITVIEW')) && !ccls.addSaveDraftButton.versionValues.isNewInstance()) {
+    if (!ccls.addSaveDraftButton.versionValues.isNewInstance()) {
         // hide path in "available paths" buttons" group
         let paths = ccls.utils.basicPathInformation;
         if (paths.length > 0) {

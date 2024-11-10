@@ -27,7 +27,7 @@ ccls.addSaveButtonAsPath.VersionDependingValues = [
         }
     }
     , {
-        version: '2024.1.1.1',
+        version: '2025.1.1.1',
         values: {
             'buttonClasses': 'webcon-ui button button--default button--medium form-button pathPanelButton',
             'isNewInstance': function () { return G_WFELEM === null }
