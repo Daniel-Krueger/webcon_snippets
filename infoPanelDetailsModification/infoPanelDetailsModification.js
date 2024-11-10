@@ -1,9 +1,9 @@
 window.dkr = window.dkr || {}
 dkr.infoPanelDetailsModification = {};
 
-
-dkr.infoPanelDetailsModification.useStartTeamsChatFromTasks = false;
+dkr.infoPanelDetailsModification.useGroupTaskHover = false;
 dkr.infoPanelDetailsModification.useNewTaskIcon = false;
+dkr.infoPanelDetailsModification.useStartTeamsChatFromTasks = false;
 //#region Common to all modifications
 // The number of milliseconds we wait, until the DOM changes have been applied.
 dkr.infoPanelDetailsModification.DOMUpdateDelay = 50;
@@ -48,6 +48,9 @@ dkr.infoPanelDetailsModification.executeModification = function () {
     }
     if (true == dkr.infoPanelDetailsModification.useNewTaskIcon) {
         dkr.infoPanelDetailsModification.changeUserIconForNewTasks.changeIcons();
+    }
+    if (true == dkr.infoPanelDetailsModification.useGroupTaskHover) {
+        dkr.infoPanelDetailsModification.groupTaskHover.addHoverEffect();
     }
 }
 
@@ -182,6 +185,49 @@ dkr.infoPanelDetailsModification.addTeamsChatToTasks.replaceUserWithTeamsLink = 
     }
 
 
+}
+
+//#endregion
+
+//#region Group Task Hover
+dkr.infoPanelDetailsModification.groupTaskHover = {}
+dkr.infoPanelDetailsModification.groupTaskHover.groupMembers = []
+// [
+//     {
+//         "GroupId": "dyz@bps.local",
+//         "TaskId": 2659,
+//         "Users": [
+//             {
+//                 "Id": "user@example.com", "Name": "Display Name"
+//             }
+//         ]
+//     }
+// ]
+
+dkr.infoPanelDetailsModification.groupTaskHover.addHoverEffect = function () {
+    const infoPanel = document.querySelector(".formElementInfoPanel")
+    if (infoPanel != null) {
+        dkr.infoPanelDetailsModification.groupTaskHover.groupMembers.forEach(group => {
+            const taskElement = document.querySelector(`div[data-task-id='${group.TaskId}']`, infoPanel);
+            if (taskElement != null) {
+                const spanElement = taskElement.querySelector("span");
+                if (spanElement != null) {
+                    spanElement.addEventListener('mouseenter', () => {
+                        const hoverDiv = document.createElement('div');
+                        hoverDiv.classList.add('dkr-group-hover-info');
+                        hoverDiv.innerHTML = group.Users.map(user => user.Name).join('<br>');
+                        spanElement.appendChild(hoverDiv);
+                    });
+                    spanElement.addEventListener('mouseleave', () => {
+                        const hoverDiv = spanElement.querySelector('.dkr-group-hover-info');
+                        if (hoverDiv) {
+                            spanElement.removeChild(hoverDiv);
+                        }
+                    });
+                }
+            }
+        });
+    }
 }
 
 //#endregion
