@@ -22,6 +22,7 @@ ccls.breadcrumb = {};
 //ccls.breadcrumb.regex = /element\/\d*\/form.*/i;
 ccls.breadcrumb.textOnly = false;
 ccls.breadcrumb.showHome = true;
+ccls.breadcrumb.showWorkflowId = true;
 ccls.breadcrumb.homeLabel;
 switch (window.initModel.userLang.substr(0, 2)) {
   case "de":
@@ -35,31 +36,53 @@ switch (window.initModel.userLang.substr(0, 2)) {
     break;
 }
 
-ccls.breadcrumb.navigateTo = async function (appId, elementId) {
+ccls.breadcrumb.VersionDependingValues = [
+  {
+    version: '0.0.0.0',
+    values: {
+      'moveBreadcrumb': function () { }
+    }
+  }
+  , {
+    version: '2025.1.1.1',
+    values: {
+      'moveBreadcrumb': function () {
+        let navigationHeader = document.querySelector("#formContainer .webcon-ui .banner__header");
+        navigationHeader.children[0].remove()
+        navigationHeader.appendChild(ccls.breadcrumb.documentElement)
+      }
+    }
+  }
+];
+ccls.breadcrumb.versionValues = ccls.utils.getVersionValues(ccls.breadcrumb.VersionDependingValues);
+
+ccls.breadcrumb.navigateTo = async function (appId, elementId, event) {
   if (!ccls.utils.continueAlsoPageIsDirty) return;
   let dbId = ccls.utils.getIdFromUrl('db');
-  
+
   // We can not fetch the application from the URL because it's not part of the URL from the global task overview.
   // Only the db and element are part of the URL /tasks/db/3/element/2758/form  
-  let currentAppId =  appId > 0 ? appId : (await ccls.utils.getLiteModel()).formInfo.applicationId;
-  
-  let currentElementId = elementId > 0? elementId : ccls.utils.getIdFromUrl('element');
+  let currentAppId = appId > 0 ? appId : ccls.utils.applicationId
+
+  let currentElementId = elementId > 0 ? elementId : ccls.utils.getIdFromUrl('element');
   // Release current document if in edit mode
   if (G_EDITVIEW == true) {
-    let options = {method: 'GET',
+    let options = {
+      method: 'GET',
       headers: {}
     };
     // We don't need the result.
-    fetch(`/api/nav/db/${dbId}/app/${ccls.utils.applicationId}/element/${currentElementId}/checkout/release`, options).then();
+    fetch(`/api/nav/db/${dbId}/app/${currentAppId}/element/${currentElementId}/checkout/release`, options).then();
   }
   elemntToDisplay = `/db/${dbId}/app/${appId}/element/${elementId}/form?returnurl=`
 
-  // Will include the existing return URL
-  //document.location.href =
-  //    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form` + document.location.search);
-  // Use only the current return URL
-  document.location.href =
-    elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form`);
+  let url = elemntToDisplay + encodeURIComponent(`/db/${dbId}/app/${currentAppId}/element/${currentElementId}/form`);
+
+  if (event.ctrlKey) {
+    window.open(url, '_blank');
+  } else {
+    document.location.href = url;
+  }
 };
 ccls.breadcrumb.webconData = "";
 // ccls.breadcrumb.webconData =
@@ -123,14 +146,14 @@ ccls.breadcrumb.createBreadcrumb = async function () {
         if (this.textOnly) {
           breadcrumbDropDownContent += `<span>${item.signature + ':' + itemTitle}</span>`;
         } else {
-          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})">${item.signature + '(' + item.id + ')' + ':' + itemTitle}</a>`;
+          breadcrumbDropDownContent += `<a onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id},event)">${item.signature + (ccls.breadcrumb.showWorkflowId ? ' (' + item.id + ')' : '') + ': ' + itemTitle}</a>`;
         }
 
         let breadcrumbItem;
         if (this.textOnly) {
           breadcrumbItem = `<div class="ccls-Breadcrumb-itemLeave" title="${item.signature + ':' + itemTitle}"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</div>`;
         } else {
-          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature + '(' + item.id + ')' + ':' + itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id})"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
+          breadcrumbItem = `<a class="ccls-Breadcrumb-itemLink" title="${item.signature + (ccls.breadcrumb.showWorkflowId ? ' (' + item.id + ')' : '') + ': ' + itemTitle}" onClick="ccls.breadcrumb.navigateTo(${item.appId},${item.id},event)"><span class="ccls-breadcrumb-FormType">${item.formType}</span><br />${itemTitle}</a>`;
         }
         breadcrumbItem += '<i class="ccls-Breadcrumb-chevron ms-Icon ms-Icon--ChevronRight"></i>';
         dummy.innerHTML = breadcrumbItem;
@@ -140,28 +163,68 @@ ccls.breadcrumb.createBreadcrumb = async function () {
 
     if (breadcrumbDropDownContent != "") {
 
-      breadcrumbContent = document.getElementById("ccls-Breadcrumb-Home");
+      breadcrumbContent = document.getElementById("formContainer");
       breadcrumbContent.insertAdjacentHTML("beforeend",
         `
       <div id="ccls-Breadcrumb-DropDown">
         ${breadcrumbDropDownContent}
       </div>
       `);
+      ccls.breadcrumb.setupHomeIconDropDownHoverEffect();
     }
+
   }
   // add leave element and using title field
   breadcrumbList.insertAdjacentHTML("beforeend",
     `
-        <li class="ccls-Breadcrumb-listItem" >
-          <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
-          <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
-          </div>
-        </li>
-      `);
+      <li class="ccls-Breadcrumb-listItem" >
+        <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
+        <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
+        </div>
+      </li>
+    `);
   let leaveElement = breadcrumbList.querySelector("#cclsBreadcrumbItemLeave");
   let titleField = document.getElementById("cclsTitleField");
   leaveElement.insertAdjacentElement("beforeend", titleField);
+  ccls.breadcrumb.versionValues.moveBreadcrumb();
 };
+
+ccls.breadcrumb.setupHomeIconDropDownHoverEffect = function () {
+
+
+  const breadcrumbHome = document.getElementById("ccls-Breadcrumb-Home");
+  const breadcrumbDropDown = document.getElementById("ccls-Breadcrumb-DropDown");
+
+
+  // Function to show the dropdown
+  function showDropdown() {
+    const rect = breadcrumbHome.getBoundingClientRect();
+    // breadcrumbDropDown.style.top = `${rect.bottom + window.scrollY}px`;
+    // breadcrumbDropDown.style.left = `${rect.left + window.scrollX}px`;
+    breadcrumbDropDown.style.top = `${rect.top - 20 + window.scrollY}px`;
+    breadcrumbDropDown.style.display = "block";
+  }
+
+  // Function to hide the dropdown
+  function hideDropdown() {
+    breadcrumbDropDown.style.display = "none";
+  }
+
+  // Show dropdown when hovering over breadcrumb
+  breadcrumbHome.addEventListener("mouseenter", showDropdown);
+
+  // Keep dropdown visible when hovering over it
+  breadcrumbDropDown.addEventListener("mouseenter", showDropdown);
+
+  // Hide dropdown only when the mouse leaves both elements
+  breadcrumbHome.addEventListener("mouseleave", function () {
+    setTimeout(() => {
+      if (!breadcrumbDropDown.matches(':hover')) hideDropdown();
+    }, 400); // Slight delay to ensure mouseenter can be triggered on dropdown
+  });
+
+  breadcrumbDropDown.addEventListener("mouseleave", hideDropdown);
+}
 //#endregion
 
 //#region breadcrumb styling
@@ -240,7 +303,7 @@ ccls.breadcrumb.styling = `
   position: absolute;
   background-color: #fff;
   min-width: 160px;
-  z-index: 1;
+  z-index: 999;
   padding: 8px;
   border: 1px solid #ccc;
 }
@@ -268,10 +331,10 @@ ccls.breadcrumb.styling = `
     display: inline-block;
   }
   #ccls-Breadcrumb-DropDown a {
-    display: none;
+   /* display: none; */
   }
   .ccls-Breadcrumb-Home:hover #ccls-Breadcrumb-DropDown a {
-    display: block;
+    /* display: block; */
   }
 }
 </style>
