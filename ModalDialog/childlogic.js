@@ -85,6 +85,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
       `;
   } else {
     cclsStyle.innerHTML = `
+      #formContainer { margin-top:2px;}
       .dynamic-form.modern #pathPanel 
       #cclsCloseDialogButton} {
       background-color: ${themedColor};
