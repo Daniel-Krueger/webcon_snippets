@@ -25,6 +25,30 @@ ccls.modal.child.startDebugger = function () {
   return false;
 }
 
+ccls.modal.child.VersionDependingValues = [
+  {
+    version: '0.0.0.0',
+    values: {
+      'customStyles': `
+       #formContainer { margin-top:0px;}      
+      `
+    }
+  }
+  , {
+    version: '2025.1.1.1',
+    values: {
+      'customStyles': `
+       #formContainer { margin-top:2px;;background-color: var(--colorNeutralBackground1)}
+        #centerPanel {background-color: var(--colorNeutralBackground1)}
+        div.dynamic-form {background-color: var(--colorNeutralBackground1) !important}
+      `
+    }
+  }
+];
+//#endregion
+
+ccls.modal.child.versionValues = ccls.utils.getVersionValues(ccls.modal.child.VersionDependingValues);
+
 //#region setup tracking navigation changes, to check whether the child dialog should be closed.
 // Requires "Show confirmation" on the path which should close the dialog and that the url is called within embeded mode
 ccls.modal.trackNavigation = ccls.modal.trackNavigation || {};
@@ -85,7 +109,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
       `;
   } else {
     cclsStyle.innerHTML = `
-      #formContainer { margin-top:2px;}
+      ${ccls.modal.child.versionValues.customStyles}
       .dynamic-form.modern #pathPanel 
       #cclsCloseDialogButton} {
       background-color: ${themedColor};

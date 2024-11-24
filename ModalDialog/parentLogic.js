@@ -32,7 +32,14 @@ ccls.modal.dialog.VersionDependingValues = [
       'encodeParametersTwice': true,
       'modalDialogContainerClasses': "modal-window animation100 modal-window--large",
       'modalDialogHeaderElement': "header",
-      'modalDialogHeaderElementClasses': "modal-window__header"
+      'modalDialogHeaderElementClasses': "modal-window__header",
+      dialogStyling: function () {
+        document.getElementById('cclsModalLayoutDefinition').style.padding = "12px";
+        let footerRight = document.querySelector('#cclsModalLayoutDefinition .footer-right');
+        footerRight.style.display = "flex";
+        footerRight.style.justifyContent = "flex-end";
+
+      }
     }
   }, {
     version: '2023.1.3.118',
@@ -40,7 +47,16 @@ ccls.modal.dialog.VersionDependingValues = [
       'encodeParametersTwice': false,
       'modalDialogContainerClasses': "modal-window animation100 modal-window--large",
       'modalDialogHeaderElement': "header",
-      'modalDialogHeaderElementClasses': ""
+      'modalDialogHeaderElementClasses': "",
+      dialogStyling: function () {
+        document.getElementById('cclsModalLayoutDefinition').style.padding = "12px";
+        let footerRight = document.querySelector('#cclsModalLayoutDefinition .footer-right');
+        footerRight.style.display = "flex";
+        footerRight.style.justifyContent = "flex-end";
+        document.querySelector('#cclsModalLayoutDefinition #footerCloseButton').setAttribute("class","webcon-button animated modal-button th-button-default webcon-button--padding-default")
+
+      }
+
     }
   }
   , {
@@ -49,7 +65,10 @@ ccls.modal.dialog.VersionDependingValues = [
       'encodeParametersTwice': false,
       'modalDialogContainerClasses': "modal-window animation100 attachment-preview-modal modal-window--align-center",
       'modalDialogHeaderElement': "div",
-      'modalDialogHeaderElementClasses': "modal-window__header"
+      'modalDialogHeaderElementClasses': "modal-window__header",
+      dialogStyling: function () {
+
+      }
     }
   }
 ];
@@ -344,7 +363,7 @@ ccls.modal.dialog.startWorkflow = function (titleLabels, urlParametersAsString, 
 
 ccls.modal.dialog.displayiFrame = function (titleLabels, url, dimensions, closeFunction, opensWorkflowInstance) {
   console.log(url)
-  let iFrame = document.getElementById("cclsModaliframe")  
+  let iFrame = document.getElementById("cclsModaliframe")
   iFrame.src = url;
   iFrame.style.display = "block";
   document.getElementById("cclsModalInnerHtml").innerHTML = "";
@@ -360,7 +379,7 @@ ccls.modal.dialog.displayHTML = function (title, parameters, dimensions, closeFu
     return;
   }
 
-  let iFrame = document.getElementById("cclsModaliframe")  
+  let iFrame = document.getElementById("cclsModaliframe")
   iFrame.src = "";
   iFrame.style.display = "none";
   document.getElementById("cclsModalInnerHtml").innerHTML = parameters.innerHTML;
@@ -370,7 +389,6 @@ ccls.modal.dialog.displayHTML = function (title, parameters, dimensions, closeFu
 }
 
 ccls.modal.dialog.internalOpen = function (titleLabels, dimensions, closeFunction, opensWorkflowInstance) {
-  console.log(url);
   let titles = JSON.parse("{" + titleLabels + "}");
   let title = titles[window.initModel.userLang.substr(0, 2)];
   if (typeof (title) == "undefined") title = titles.default;
@@ -394,6 +412,7 @@ ccls.modal.dialog.internalOpen = function (titleLabels, dimensions, closeFunctio
   if (typeof (closeFunction) == "function") {
     ccls.modal.dialog.customClosingFunction = closeFunction;
   }
+  ccls.modal.dialog.versionValues.dialogStyling();
 }
 
 // Will generate the search parameters which should be added to the url.
@@ -520,10 +539,10 @@ ccls.modal.dialog.dialogHtml =
 			</div>
 		</div>
 	</${ccls.modal.dialog.versionValues.modalDialogHeaderElement}>
-	<div class="modal-window__section modal-window__section--no-padding">
+	<div class="modal-window__section modal-window__section--no-padding" style="height:100%">
 		<!-- <iframe id="cclsModaliframe" height="100%" width="100%" style="border:0px"></iframe> -->
-		<div class="attachment-preview-modal__content">
-			<div class="loading-container" aria-busy="false">
+		<div class="attachment-preview-modal__content" style="height:100%">
+			<div class="loading-container" aria-busy="false" style="height:100%">
 				<div class="loading-container__spinner ccls-loading-container__spinner">
 					<div class="loading-container__spinner-overlay"></div>
 					<div class="loading-container__spinner-image">
@@ -537,8 +556,8 @@ ccls.modal.dialog.dialogHtml =
 						</div>
 					</div>
 				</div>
-				<div class="loading-container__children ccls-loading-container__children">
-					<div class="attachment-preview-modal__loading-frame">
+				<div class="loading-container__children ccls-loading-container__children" style="height:100%">
+					<div class="attachment-preview-modal__loading-frame" style="height:100%">
 						<!-- <iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" src="##iframeSrc##" style=""/> -->
 						<iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" height="100%" width="100%" style="border:0px"></iframe>
             <div id="cclsModalInnerHtml"></div>
