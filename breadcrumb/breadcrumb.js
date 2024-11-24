@@ -190,9 +190,9 @@ ccls.breadcrumb.createBreadcrumb = async function () {
   // add leave element and using title field
   breadcrumbList.insertAdjacentHTML("beforeend",
     `
-      <li class="ccls-Breadcrumb-listItem" >
+      <li class="ccls-Breadcrumb-listItem" title='${GetPairName(G_WFELEM)} (${GetPairID(G_WFELEM)})'>
         <div class="ccls-Breadcrumb-itemLeave" id="cclsBreadcrumbItemLeave">
-        <span style="font-size:12px;">${GetPairName(G_DOCTYPE)}</span><br>
+        <span style="font-size:12px;" >${GetPairName(G_DOCTYPE)}</span><br>
         </div>
       </li>
     `);
