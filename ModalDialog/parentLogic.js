@@ -60,7 +60,7 @@ ccls.modal.dialog.VersionDependingValues = [
     }
   }
   , {
-    version: '2024.1.1.1',
+    version: '2025.1.1.1',
     values: {
       'encodeParametersTwice': false,
       'modalDialogContainerClasses': "modal-window animation100 attachment-preview-modal modal-window--align-center",

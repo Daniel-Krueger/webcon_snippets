@@ -96,7 +96,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
     themedColor = "#ff9c00c4";
     themedColorHover = "#ffab0045";
   }
-  if (ccls.modal.showFullForm == true) {
+  if (document.location.href.indexOf('embed/form') == -1) {
     cclsStyle.innerHTML = `
       .dynamic-form.modern #pathPanel 
       #cclsCloseDialogButton} {
