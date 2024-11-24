@@ -1,6 +1,8 @@
 window.ccls = window.ccls || {};
 ccls.colorizePaths = {};
 // #region colorize logic 
+ccls.colorizePaths.observer = null;
+ccls.colorizePaths.observerCounter = 0;
 ccls.colorizePaths.webconData = "";
 ccls.colorizePaths.dummyData =
     '[{"id":222,"name":"Grey","color":"default"},{"id":223,"name":"Blue","color":"#FF0093DC"},{"id":224,"name":"Red","color":"#FFDC002E"},{"id":225,"name":"orange multi en-US","color":"#FFFFA500"},{"id":226,"name":"Yellow en only","color":"#FFFFFF00"},{"id":227,"name":"Green en-GB","color":"#FF9ACD32"},{"id":228,"name":"Purple en-US","color":"#FFD1ABE5"},{"id":229,"name":"Black","color":"#FF000000"},]';
@@ -11,11 +13,9 @@ ccls.colorizePaths.VersionDependingValues = [
     {
         version: '0.0.0.0',
         values: {
-            values: {
-                'pathPanelQuerySelector': '.pathPanel',
-                "insertInfoIcon": function (availablePathsPanelElement, iconHtml) {
-                    availablePathsPanelElement.insertAdjacentHTML('afterend', iconHtml);
-                }
+            'pathPanelQuerySelector': '.wfPathPanelCaption',
+            "insertInfoIcon": function (availablePathsPanelElement, iconHtml) {
+                availablePathsPanelElement.insertAdjacentHTML('afterend', iconHtml);
             }
         }
     }, {
@@ -64,6 +64,8 @@ Zielony: Pozytywne działanie, posunie naprzód przepływ pracy
 Żółty: Przepływ zostanie odłożony/przeprogramowany, użytkownik otrzyma przypomnienie w zaplanowanym terminie
     `
 }
+
+
 ccls.colorizePaths.colorize = async function (debug, retryCounter) {
     if (debug == true) debugger;
     if (typeof (retryCounter) === "undefined") retryCounter = 0;
@@ -77,6 +79,9 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
                 }, 50);
             }
             return;
+        }
+        if (ccls.colorizePaths.observer == null) {
+            ccls.colorizePaths.initMutationObserver();
         }
 
         // May be set if it is used in combination with the dummy data
@@ -100,13 +105,63 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
             }
             currentButton.classList.add(pathStyling.class);
         }
-        let userLanguage = window.initModel.userLang.substring(0, 2)
-        let documentation = ccls.colorizePaths.documentation[userLanguage] != null ? ccls.colorizePaths.documentation[userLanguage] : ccls.colorizePaths.documentation.default;
-        let html = `<i class="icon ms-Icon ms-Icon--Info ms-Icon--standard descriptionTooltipIcon" style="padding-left:5px" aria-hidden="true" data-disabled="false" title="${documentation}" ></i> `
-        ccls.colorizePaths.versionValues.insertInfoIcon(availablePathsElement, html);
-        //availablePathsElement.insertAdjacentHTML('afterend', html);
+        if (document.getElementById("ccls_PathDescription") == null) {
+            let userLanguage = window.initModel.userLang.substring(0, 2)
+            let documentation = ccls.colorizePaths.documentation[userLanguage] != null ? ccls.colorizePaths.documentation[userLanguage] : ccls.colorizePaths.documentation.default;
+            let html = `<i id="ccls_PathDescription" class="icon ms-Icon ms-Icon--Info ms-Icon--standard descriptionTooltipIcon" style="padding-left:5px" aria-hidden="true" data-disabled="false" title="${documentation}" ></i> `
+            ccls.colorizePaths.versionValues.insertInfoIcon(availablePathsElement, html);
+        }
     }
 };
+ccls.colorizePaths.initMutationObserver = function () {
+    const targetNode = document.querySelector("#pathPanel");
+    if (!targetNode) {
+        console.error('Target node for MutationObserver not found');
+        return;
+    }
+    console.log('Colorize paths MutationObserver execution count in the last second: ' + ccls.colorizePaths.observerCounter);
+
+    const config = { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] };
+
+    const callback = function (mutationsList, observer) {
+        if (!document.contains(targetNode)) {
+            observer.disconnect(); // Disconnect if the target node is removed
+            console.log('Target node removed, observer disconnected');
+            return;
+        }
+
+        ccls.colorizePaths.observerCounter++;
+        if (ccls.colorizePaths.observerCounter > 20) {
+            observer.disconnect(); // Disconnect if executed more than 20 times in 1 second
+            console.warn('Observer disconnected due to excessive executions');
+            return;
+        }
+
+        for (let mutation of mutationsList) {
+            if (mutation.type === 'childList' || (mutation.type === 'attributes' && mutation.target.className.includes('pathPanelButton'))) {
+                observer.disconnect(); // Disconnect to avoid infinite loop
+                ccls.colorizePaths.colorize(false); // Re-execute the colorize function
+                observer.observe(targetNode, config); // Reconnect the observer
+                break;
+            }
+        }
+    };
+
+    // Reset the observer counter every second
+    setInterval(() => {
+        ccls.colorizePaths.observerCounter = 0;
+    }, 1000);
+
+    // Disconnect any existing observer
+    if (ccls.colorizePaths.observer) {
+        ccls.colorizePaths.observer.disconnect();
+    }
+
+    // Create a new observer
+    ccls.colorizePaths.observer = new MutationObserver(callback);
+    ccls.colorizePaths.observer.observe(targetNode, config);
+};
+
 
 // #endregion
 
