@@ -60,7 +60,7 @@ ccls.addSaveDraftButton.VersionDependingValues = [
                 return `<div class="toolbar-button__wrapper">
 <button id="SaveDraftToolbarButton" title="${ccls.addSaveDraftButton.saveDraftButtonLabel}"  tabindex="0" type="button" aria-label="${ccls.addSaveDraftButton.saveDraftButtonLabel}" class="webcon-ui button button--subtle button--medium toolbar-button__button"  onclick="MoveToNextStep(${pathId})" >
     <span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content">
-        <i class="icon ms-Icon ms-Icon--Reply ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
+        <i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>${ccls.addSaveDraftButton.saveDraftButtonLabel}</div>
     </span>
 </button>
 </div>
