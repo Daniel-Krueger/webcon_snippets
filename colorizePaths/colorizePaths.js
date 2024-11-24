@@ -73,7 +73,7 @@ ccls.colorizePaths.colorize = async function (debug, retryCounter) {
         // Placing the html field in the bottom panel won't require the timeout to be executed, it's just a safety measure.
         var availablePathsElement = document.querySelector(ccls.colorizePaths.versionValues.pathPanelQuerySelector);
         if (availablePathsElement == null) {
-            if (retryCounter < 5) {
+            if (retryCounter < 10) {
                 setTimeout(() => {
                     ccls.colorizePaths.colorize(debug, retryCounter + 1)
                 }, 50);
