@@ -1,0 +1,1 @@
+ 'link:javascript:dkr.modaldashboard.displayWorkflowFromReport('+cast(WFD_ID as varchar(12))+',''WFD_Signature'','''+WFD_Signature+''',''width:60%;height:75%;'',true);displayname:'+WFD_Signature

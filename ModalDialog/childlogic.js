@@ -38,9 +38,29 @@ ccls.modal.child.VersionDependingValues = [
     version: '2025.1.1.1',
     values: {
       'customStyles': `
-       #formContainer { margin-top:2px;;background-color: var(--colorNeutralBackground1)}
-        #centerPanel {background-color: var(--colorNeutralBackground1)}
-        div.dynamic-form {background-color: var(--colorNeutralBackground1) !important}
+      	 #centerPanel {
+        padding: var(--spacingHorizontalS);
+        background-color: var(--colorNeutralBackground1);
+        min-width: 100%;
+      }
+      body.th-main  {
+        background-color: var(--colorNeutralBackground1)
+      }
+      .dynamic-form.modern{background-color: var(--colorNeutralBackground1);}
+       .dynamic-form.modern .spswc .majorFont {background-color: var(--colorNeutralBackground1);}
+      
+      .top-bar-header__toolbar .top-bar-toolbar-alternative__wrapper {
+        margin-block-start: var(--spacingHorizontalS);
+        margin-block-end: var(--spacingHorizontalNone);
+        margin-inline: var(--spacingHorizontalS);
+        background-color: var(--colorNeutralBackground2)
+      }
+      #main-form-page {
+        padding: 0;
+      }
+      .redux-toastr, .top-bar-header__banner, .rightBar, button.infoBtn {
+        display: none;
+      }
       `
     }
   }
@@ -96,8 +116,7 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
     themedColor = "#ff9c00c4";
     themedColorHover = "#ffab0045";
   }
-  if (document.location.href.indexOf('embed/form') == -1) {
-    cclsStyle.innerHTML = `
+  cclsStyle.innerHTML = `
       .dynamic-form.modern #pathPanel 
       #cclsCloseDialogButton} {
       background-color: ${themedColor};
@@ -107,31 +126,11 @@ ccls.modal.trackNavigation.infiniteUrlChangeCheck = setTimeout(ccls.modal.trackN
       background-color: ${themedColorHover};
       }
       `;
-  } else {
-    cclsStyle.innerHTML = `
-      ${ccls.modal.child.versionValues.customStyles}
-      .dynamic-form.modern #pathPanel 
-      #cclsCloseDialogButton} {
-      background-color: ${themedColor};
-      }
-      .dynamic-form.modern #pathPanel 
-      #cclsCloseDialogButton:hover {
-      background-color: ${themedColorHover};
-      }
-      .top-bar-header,
-      .ms-promotedActionButton-text {
-        display: none;
-      }
-
-      .redux-toastr {
-        display: none;
-      }
-      .rightBar {
-        display:none;
-      }
-      `;
+      
+  if (document.location.href.indexOf('embed/form') > 0) {
+    cclsStyle.innerHTML = ccls.modal.child.versionValues.customStyles + cclsStyle.innerHTML;
   }
-  document.getElementsByTagName('head')[0].appendChild(cclsStyle);
+  document.getElementById("formContainer").appendChild(cclsStyle);
 })();
 
 //#endregion
