@@ -1,14 +1,10 @@
 <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.umd.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
-<h4 id="ModalDialogEditor" style="display: none;">Edit modal dialog dashboard code</h4>
+<h4 id="ModalDialogEditor" style="display: block;">Edit modal dialog dashboard code</h4>
 <script>
-    if (document.querySelector(".dashboard-configuration")) {
-        document.getElementById("ModalDialogEditor").style.display = "block";
-    }
-    else {
+    if (!document.querySelector(".dashboard-configuration")) {
         document.getElementById("ModalDialogEditor").parentElement.parentElement.parentElement.style.display = "none";
-    }
-    
+    }    
 </script>
 <script>
 
