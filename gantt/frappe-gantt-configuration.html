@@ -12,7 +12,7 @@
             'wbc-cosmols-dev07.cosmocloud.eu': {
                 db: 23,
                 app: 53,
-                report: 49
+                report: 52
             },
             'hostname2': {
                 db: 24,
@@ -34,12 +34,15 @@
         dimensions: null,
         refreshChartOnModalClose: true,
         viewModes: ['Day', 'Week', 'Month'],
-        //https://github.com/frappe/gantt options:
+        hideReportOnDashboard: true,
+        //  options:
         options: {
             view_mode: 'Week',
             language: window.initModel.userLang.substring(0, 2),
             view_mode_select: true,
-            scroll_to: 'start'
+            scroll_to: 'start',
+            infinite_padding : false,
+            container_height : 500	
         }
     };
     console.log("gantt configuration executed");
