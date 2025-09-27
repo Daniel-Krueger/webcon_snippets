@@ -1,0 +1,27 @@
+<script>
+    InvokeRule(#{BRUX:714:ID}#);
+    InvokeRule(#{BRUX:733:ID}#);
+    InvokeRule(#{BRUX:1433:ID}#);
+
+    openNewTagModalPopupSearch = function () {
+        const input = document.querySelector('span.picker-search__input input')
+        ccls.modal.dialog.startWorkflow(`"default":"New tag", "de":"Neues Tag"` // Define the title of the modal dialog
+            , `"workflowId": #{WF:99}#, "formTypeId": #{DT:106}#` // Define the workflow and form type to be started
+            , `"#{FLD:1573}#":"${input?.value}"` // The field to which the entered value should be passed
+            , 'height:90%; width: 50%'
+            , dkr.chooseFieldAddNew.executeSearchAgain)
+    }
+
+
+    openNewTagModalAutocomplete = function () {
+        const input = document.querySelector('div##{FLD:1582}# input');
+        ccls.modal.dialog.startWorkflow(`"default":"New tag", "de":"Neues Tag"` // Define the title of the modal dialog
+            , `"workflowId": #{WF:99}#, "formTypeId": #{DT:106}#` // Define the workflow and form type to be started
+            , `"#{FLD:1573}#":"${input?.value}"` // The field to which the entered value should be passed
+            , 'height:90%; width: 50%'
+            , newTagCloseFunction)
+    }
+    newTagCloseFunction = async function (parameters) {
+        ccls.modal.dialog.closeFunctions.setGuidForField(parameters, '#{FLD:1582}#');
+    }
+</script>

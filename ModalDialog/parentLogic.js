@@ -53,10 +53,9 @@ ccls.modal.dialog.VersionDependingValues = [
         let footerRight = document.querySelector('#cclsModalLayoutDefinition .footer-right');
         footerRight.style.display = "flex";
         footerRight.style.justifyContent = "flex-end";
-        document.querySelector('#cclsModalLayoutDefinition #footerCloseButton').setAttribute("class","webcon-button animated modal-button th-button-default webcon-button--padding-default")
+        document.querySelector('#cclsModalLayoutDefinition #footerCloseButton').setAttribute("class", "webcon-button animated modal-button th-button-default webcon-button--padding-default")
 
       }
-
     }
   }
   , {
@@ -85,12 +84,23 @@ ccls.modal.dialog.startDebugger = function () {
   }
   return false;
 }
+
+
+/**
+ * Retrieves the GUID of the current theme applied to the document.
+ * The theme GUID is extracted from the class name of the body element.
+ * If no theme class is found, a default GUID of '00000000-0000-0000-0000-000000000000' is returned.
+ *
+ * @returns {string} The GUID of the current theme or the default GUID if no theme is applied.
+ */
 ccls.modal.dialog.getThemeGuid = function () {
   let themeClass = document.body.className.split(' ').find(cls => cls.startsWith('theme-'));
   let themeGuid = themeClass ? themeClass.replace('theme-', '') : '00000000-0000-0000-0000-000000000000';
   return themeGuid;
 }
+
 ccls.modal.dialog.closingTimeout = null;
+
 //#region closing functions
 ccls.modal.dialog.closeFunctions = ccls.modal.dialog.closeFunctions || {};
 
@@ -170,7 +180,15 @@ ccls.modal.dialog.closeFunctions.setGuidForField = async function (parameters, t
   }
   const data = await ccls.utils.getSpecificLiteModel(parameters.dbId, parameters.instanceId);
   ccls.modal.dialog.startDebugger();
-  SetValue(targetField, data.liteData.liteModel.formInfo.guid);
+  // This part supports multi value fields.
+  const existingValues = GetValue(targetField)?.split(";")
+  let selectedIds = null;
+  if (existingValues && existingValues.length > 0) {
+    selectedIds = existingValues.map(value => GetPairID(value)).filter(value => value !== "");
+  }
+
+  selectedIds.push(data.liteData.liteModel.formInfo.guid);
+  SetValue(targetField, selectedIds.join(";"));
 }
 
 // internal function for setting a column in an item list
@@ -204,6 +222,13 @@ ccls.modal.dialog.closeFunctions.setGuidForItemListColumn = async function (para
 ccls.modal.dialog.customClosingFunction = undefined;
 ccls.modal.dialog.close = function (parameters) {
   ccls.modal.dialog.startDebugger();
+  // Move the modal dialog to the node with id "formContainer". 
+  // This is necessary, to remove any customization to the modal dialog, if the user navigates away from the form.
+  const modalDiv = document.getElementById("cclsModal");
+  const formContainer = document.getElementById("formContainer");
+  if (modalDiv && formContainer) {
+    formContainer.appendChild(modalDiv);
+  }
   document.removeEventListener("keydown", ccls.modal.dialog.closeOnEscape);
   document.getElementById("cclsModaliframe").contentWindow.postMessage(new Message("parentClosing", parameters));
   ccls.modal.dialog.closingTimeout = setTimeout(() => {
@@ -257,21 +282,18 @@ ccls.modal.dialog.displayAttachment = function (title, parameters, dimensions) {
 
   let modals = document.getElementById("Modals");
 
+  var url = `/attachments/db/${parameters.dbId}/preview/${parameters.attachmentId}?hash=` + Date.now();
 
   if (localStorage.getItem("WebconBPS_Impersonator") != 'null') {
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', previewDocumentUrl);
+    xhr.open('GET', url);
     xhr.onreadystatechange = function () {
       if (this.readyState === this.DONE) {
         if (this.status === 200) {
           var data_url = URL.createObjectURL(this.response);
-          let insertHtml = previewHTML.replaceAll("##iframeSrc##", data_url);
-          insertHtml = insertHtml.replaceAll("##documentName##", ccls_attachmentTitle);
-          modals.innerHTML = insertHtml;
-
-          document.querySelector(".ccls-loading-container__children").style.visibility = "visible";
-          document.querySelector(".ccls-loading-container__spinner").style.visibility = "hidden";
+          document.getElementById("cclsModaliframe").src = data_url;
+          ccls.modal.dialog.displayUrl(title, data_url, dimensions)
         } else {
           console.error('no pdf :(');
         }
@@ -283,7 +305,6 @@ ccls.modal.dialog.displayAttachment = function (title, parameters, dimensions) {
     xhr.send();
   }
   else {
-    var url = `/attachments/db/${parameters.dbId}/preview/${parameters.attachmentId}?hash=` + Date.now();
     console.log(`Display attachment: '${url}'`);
     ccls.modal.dialog.displayiFrame('"default":"' + title + '"', url, dimensions, null, false)
 
@@ -363,6 +384,11 @@ ccls.modal.dialog.startWorkflow = function (titleLabels, urlParametersAsString, 
 
 ccls.modal.dialog.displayiFrame = function (titleLabels, url, dimensions, closeFunction, opensWorkflowInstance) {
   console.log(url)
+  // This is necessary, so that our dialog is in front of a WEBCON modal.
+  const modalDiv = document.getElementById("cclsModal");
+  if (modalDiv && formContainer) {
+    document.body.appendChild(modalDiv);
+  }
   let iFrame = document.getElementById("cclsModaliframe")
   iFrame.src = url;
   iFrame.style.display = "block";
@@ -370,6 +396,7 @@ ccls.modal.dialog.displayiFrame = function (titleLabels, url, dimensions, closeF
   document.getElementById("cclsOpenInNewWindow").style.display = "block";
   ccls.modal.dialog.internalOpen(titleLabels, dimensions, closeFunction, opensWorkflowInstance);
   ccls.modal.dialog.showModalDialogContent();
+
 }
 
 
@@ -386,6 +413,14 @@ ccls.modal.dialog.displayHTML = function (title, parameters, dimensions, closeFu
   document.getElementById("cclsOpenInNewWindow").style.display = "none";
   ccls.modal.dialog.internalOpen('"default":"' + title + '"', dimensions, closeFunction, false);
   ccls.modal.dialog.showModalDialogContent();
+}
+
+ccls.modal.dialog.updateHTML = function (parameters) {
+  if (parameters == null) {
+    console.log("No parameters have been provided");
+    return;
+  }
+  document.getElementById("cclsModalInnerHtml").innerHTML = parameters.innerHTML;
 }
 
 ccls.modal.dialog.internalOpen = function (titleLabels, dimensions, closeFunction, opensWorkflowInstance) {
@@ -405,7 +440,7 @@ ccls.modal.dialog.internalOpen = function (titleLabels, dimensions, closeFunctio
     dimensions = " height:95%; width:95%"
   }
 
-  $(".modal-window").attr("style", "z-index: 2003;" + dimensions);
+  document.querySelector("#cclsModal .modal-window").setAttribute("style", "z-index: 2103;" + dimensions);
   document.getElementById('cclsModal').style.display = "block";
   document.addEventListener("keydown", ccls.modal.dialog.closeOnEscape);
 
@@ -499,9 +534,10 @@ ccls.modal.dialog.dialogHtml =
   #cclsModalLayoutDefinition  > ${ccls.modal.dialog.versionValues.modalDialogHeaderElement} {
     cursor:move;
   }
-  #cclsModal" .modal-window {
+  #cclsModalLayoutDefinition {
     max-height: calc(100% - 10px);
-    top: 5px;
+    top:20px;
+    transform: translate(-50%, 0px);
   }
   #cclsModalTitle {
     font-weight: 600;
@@ -514,59 +550,57 @@ ccls.modal.dialog.dialogHtml =
 }
   </style>
  <div id="cclsModal" class="modal-outer" style="display:none">
-	<div id="cclsModalLayoutDefinition" class="${ccls.modal.dialog.versionValues.modalDialogContainerClasses}" style="z-index: 2003">
+  <div id="cclsModalLayoutDefinition" class="${ccls.modal.dialog.versionValues.modalDialogContainerClasses}" style="z-index: 2003">
 		<${ccls.modal.dialog.versionValues.modalDialogHeaderElement} class=${ccls.modal.dialog.versionValues.modalDialogHeaderElementClasses}>
-		<div class="title-container expandable">
-			<div class="title" id="cclsModalTitle"></div>
-			<div class="subtitle"></div>
-		</div>
-		<div class="actions">
-			<!-- reusing the expand class to match the styling, but moving the position of the element with the style -->
-			<div id="cclsOpenInNewWindow" class="expand" style="right: 60px;">
-				<button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Close" tabindex="0" type="button">
-					<i class="icon ms-Icon ms-Icon--OpenInNewWindow ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
-				</button>
-			</div>
-			<div id="cclsExpandDialog" class="expand">
-				<button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Full screen" tabindex="0" type="button">
-					<i id="cclsExpandButtonIcon" class="icon ms-Icon ms-Icon--FullScreen ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
-				</button>
-			</div>
-			<div id="cclsCloseDialog" class="close">
-				<button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Close" tabindex="0" type="button">
-					<i class="icon ms-Icon ms-Icon--ChromeClose ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
-				</button>
-			</div>
-		</div>
-	</${ccls.modal.dialog.versionValues.modalDialogHeaderElement}>
+      <div class="title-container expandable">
+        <div class="title" id="cclsModalTitle"></div>
+        <div class="subtitle"></div>
+      </div>
+      <div class="actions">
+        <!-- reusing the expand class to match the styling, but moving the position of the element with the style -->
+        <div id="cclsOpenInNewWindow" class="expand" style="right: 60px;">
+          <button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Close" tabindex="0" type="button">
+            <i class="icon ms-Icon ms-Icon--OpenInNewWindow ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+          </button>
+        </div>
+        <div id="cclsExpandDialog" class="expand">
+          <button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Full screen" tabindex="0" type="button">
+            <i id="cclsExpandButtonIcon" class="icon ms-Icon ms-Icon--FullScreen ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+          </button>
+        </div>
+        <div id="cclsCloseDialog" class="close">
+          <button class="webcon-button webcon-button--padding-default standard-focus webcon-button--icon-button no-hover no-background th-hover" aria-label="Close" tabindex="0" type="button">
+            <i class="icon ms-Icon ms-Icon--ChromeClose ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>
+          </button>
+        </div>
+      </div>
+	  </${ccls.modal.dialog.versionValues.modalDialogHeaderElement}>
 	<div class="modal-window__section modal-window__section--no-padding" style="height:100%">
-		<!-- <iframe id="cclsModaliframe" height="100%" width="100%" style="border:0px"></iframe> -->
+      <!-- <iframe id="cclsModaliframe" height="100%" width="100%" style="border:0px"></iframe> -->
 		<div class="attachment-preview-modal__content" style="height:100%">
 			<div class="loading-container" aria-busy="false" style="height:100%">
-				<div class="loading-container__spinner ccls-loading-container__spinner">
-					<div class="loading-container__spinner-overlay"></div>
-					<div class="loading-container__spinner-image">
-						<div aria-label="Loading" role="progressbar" class="webcon-ui spinner spinner--left">
-              <div id="cclsModalDialogSpinnerText"></div>
-
-							<div class="webcon-ui spinner__circle spinner__circle--primary spinner__circle--huge">
-								<div class="webcon-ui spinner__circle-outline">									
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+          <div class="loading-container__spinner ccls-loading-container__spinner">
+            <div class="loading-container__spinner-overlay"></div>
+            <div class="loading-container__spinner-image">
+              <div aria-label="Loading" role="progressbar" class="webcon-ui spinner spinner--left">
+                <div id="cclsModalDialogSpinnerText"></div>
+                <div class="webcon-ui spinner__circle spinner__circle--primary spinner__circle--huge">
+                  <div class="webcon-ui spinner__circle-outline">									
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 				<div class="loading-container__children ccls-loading-container__children" style="height:100%">
 					<div class="attachment-preview-modal__loading-frame" style="height:100%">
-						<!-- <iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" src="##iframeSrc##" style=""/> -->
-						<iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" height="100%" width="100%" style="border:0px"></iframe>
-            <div id="cclsModalInnerHtml"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- <div class="modal-background animation04" style="z-index: 2002"></div> -->
+              <!-- <iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" src="##iframeSrc##" style=""/> -->
+              <iframe id="cclsModaliframe" class="attachment-preview-modal__content__frame" height="100%" width="100%" style="border:0px"></iframe>
+              <div id="cclsModalInnerHtml"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>	
 	<div class="footer">
 		<div class="footer-right">
 			<!-- 
@@ -575,13 +609,16 @@ ccls.modal.dialog.dialogHtml =
         </button>
         -->
 			<button id="footerCloseButton" class="webcon-ui button button--default button--medium animated standard-focus-visible attachment-preview-modal__close-button modal-button attachment-preview-modal__content__button" type="button" data-key="Close">
-				<span class="webcon-ui text text__body-1-strong text__base button__content">Close</span>
+				<span class="webcon-ui text text__body-1-strong text__base button__content">${ccls.modal.dialog.closeBtnLabel[window.initModel.userLang.substr(0, 2)]}</span>
 			</button>
 		</div>
-	</div>
+	</div>    
+  </div>
+  <div class="modal-background animation04" style="z-index: 2002"></div>
 </div>
 `;
 
+// The modal is added to the form container, so that any customizations are destroyed, when the user leaves the form.
 $("#formContainer").append(ccls.modal.dialog.dialogHtml);
 // Add events
 $("#cclsCloseDialog > button").on('click', function () {
