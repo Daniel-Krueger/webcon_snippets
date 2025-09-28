@@ -1,0 +1,14 @@
+<script>
+InvokeRule(#{BRUX:1454:ID}#);
+
+buttonClick = function (){
+    let formRuleId = #{BRD:743:<xps><ps><p id="#BRP:55#" v="9b44254e-9c80-49ff-8017-d3684727c5a8" /></ps></xps>}#;
+    let parameters = [
+        { id: #{BRD:1455:<xps><ps><p id="#BRP:111#" v="06c94f52-ed86-46e5-b8c6-a65430c61133" /></ps></xps>}#, value:  GetPairName(G_CURUSER)},
+        { id: #{BRD:1455:<xps><ps><p id="#BRP:111#" v="5472afba-1ccf-455a-97cb-877b1b814990" /></ps></xps>}#, value: G_BROWSER_LANGUAGE }
+    ];
+    result = dkr.executeFormRuleWithParameterValues(formRuleId,parameters);
+    alert(result);
+}
+</script>
+<button onclick="buttonClick()">Execute form rule</button>
