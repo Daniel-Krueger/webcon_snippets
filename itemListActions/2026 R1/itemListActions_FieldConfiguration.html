@@ -1,0 +1,40 @@
+<style id="dkrItemListActionCSSContainer"></style>
+
+<script>
+    InvokeRule(#{BRUX:594:ID}#);
+    dkr.itemListActions.ActionButtonDefinitionString = '#{BRD:586}#';
+    dkr.itemListActions.ItemListActionConfiguration = {
+        "#{WFCON:812}#": [
+            {
+                "menuActionId": #{ACB:23}#,
+                "isVisible": true,
+                "hideMenuAction": true
+            },
+            {
+                "menuActionId": #{ACB:24}#,
+                "isVisible": true,
+                "hideMenuAction": false
+            },
+            {
+                "label": "Custom JS action",
+                "icon": "arrow_clockwise",
+                "isVisible": true,
+                "onClick": function () { alert("Custom action") }
+            }
+        ],
+        "#{WFCON:817}#": [
+            {
+                "menuActionId": #{ACB:25}#,
+                "isVisible": #{STP_ID}# == #{ST:149}#,
+                "hideMenuAction": 1==2
+            },
+            {
+                "label": "Custom JS action",
+                "icon": "arrow_turn_right_up",
+                "isVisible": true,
+                "onClick": function () { alert("Custom action") }
+            }
+        ]
+    }
+    dkr.itemListActions.init();
+</script>
