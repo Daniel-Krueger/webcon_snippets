@@ -1,0 +1,42 @@
+
+
+
+<button class="webcon-ui button button--primary button--medium toolbar-button__button" type="button" id="EditToolbarButton" aria-label="Cancel editing"><span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content"><i class="icon ms-Icon ms-Icon--ErrorBadge ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>Cancel editing</div></span></button>
+
+<script>
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'e') {
+       if (document.location.href.indexOf('form') > -1) {
+            event.preventDefault();
+            document.getElementById('EditToolbarButton').click();
+        }
+        if (document.location.href.indexOf('report') > -1) {
+            event.preventDefault();
+            document.querySelector('button.report__settings-toolbar-button').click();
+        }
+    }
+});
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();        
+        document.querySelector('i.ms-Icon--Save').click();
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.key === 'h') {
+        if (document.location.href.indexOf('form') > -1) {
+            event.preventDefault();        
+        document.getElementById('HistoryToolbarButton').click();
+    }
+    }
+});
+</script>
+
+<button class="webcon-ui button button--subtle button--medium toolbar-button__button" type="button" id="SaveToolbarButton" aria-label="Save"><span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content"><i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>Save</div></span></button>
+
+<button class="webcon-ui button button--subtle button--medium toolbar-button__button save-dashboard-config-button" type="button" aria-label="Save"><span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content"><i class="icon ms-Icon ms-Icon--Save ms-Icon--standard" aria-hidden="true" data-disabled="false"></i>Save</div></span></button>
+
+<button class="webcon-ui button button--icon-only button--subtle button--medium toolbar-button__button report__settings-toolbar-button" type="button" data-key="reportSettingsButton" aria-label="Report configuration"><span class="button__icon-animation-wrapper"><i class="webcon-ui icon-ic_fluent icon-ic_fluent_settings_20_regular icon-ic_fluent__size--20" aria-hidden="true"></i><i class="webcon-ui icon-ic_fluent icon-ic_fluent_settings_20_filled icon-ic_fluent__size--20 button__icon-filled  icon-before" aria-hidden="true"></i></span></button>
+
+<a class="webcon-ui button button--subtle button--medium toolbar-button__button" id="HistoryToolbarButton" aria-label="History" href="/db/1/app/22/element/23120/history?returnurl=%2Fdb%2F1%2Fapp%2F22%2Freport%2F50"><span class="webcon-ui text text__body-1-strong text__base button__content"><div class="toolbar-button__wrapper--button-content"><i class="icon ms-Icon ms-Icon--Clock ms-Icon--standard" aria-hidden="true" data-disabled="false"></i></div></span></a>
