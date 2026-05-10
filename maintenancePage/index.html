@@ -1,0 +1,290 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>WEBCON BPS - Maintenance</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Segoe, Tahoma, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .maintenance-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-button {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .lang-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-button.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            border: 2px solid #3498db;
+        }
+
+        .maintenance-title {
+            font-size: 2.5em;
+            font-weight: 300;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .maintenance-message {
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .maintenance-completion {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .contact-info {
+            font-size: 0.9em;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-info a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .maintenance-container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .maintenance-title {
+                font-size: 2em;
+            }
+
+            .language-selector {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="maintenance-container">
+        <!-- Language Selector (populated dynamically from CONFIG.supportedLanguages) -->
+        <div class="language-selector" id="languageSelector"></div>
+
+        <!-- Maintenance Content -->
+        <h1 class="maintenance-title" id="maintenanceTitle">System Maintenance</h1>
+
+
+        <div class="maintenance-message" id="maintenanceMessage">
+            WEBCON BPS is temporarily unavailable while we perform scheduled maintenance to improve your experience.
+        </div>
+
+        <div class="maintenance-completion" id="maintenanceCompletion" style="display: none;">
+            <!-- Maintenance end time will be populated by JavaScript if configured -->
+        </div>
+
+        <div class="contact-info" id="contactInfo" style="display: none;">
+            <!-- Contact information will be populated by JavaScript if configured -->
+        </div>
+    </div>
+
+    <script>
+
+        function detectBrowserLanguage() {
+            const browserLangs = navigator.languages || [navigator.language || navigator.userLanguage];
+
+            for (let lang of browserLangs) {
+                const langCode = lang.split('-')[0].toLowerCase();
+                if (langCode in languageMeta) {
+                    return langCode;
+                }
+            }
+
+            return CONFIG.defaultLanguage;
+        }
+
+        function switchLanguage(langCode) {
+            currentLanguage = langCode;
+            localStorage.setItem('maintenancePageLanguage', langCode);
+            updateContent();
+            updateActiveLanguageButton();
+        }
+
+
+
+        function updateElement(elementId, innerHTML) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = innerHTML;
+
+            // Show/hide logic for specific elements
+            if (elementId === 'maintenanceCompletion' || elementId === 'contactInfo') {
+                element.style.display = innerHTML !== "" ? 'block' : 'none';
+            }
+        }
+
+        function updateContent() {
+            updateElement('maintenanceTitle', titles[currentLanguage]);
+            updateElement('maintenanceMessage', messages[currentLanguage]);
+            updateElement('maintenanceCompletion', completionDetails[currentLanguage]);
+            updateElement('contactInfo', contactInfo[currentLanguage]);
+
+            document.title = `WEBCON BPS - ${titles[currentLanguage]}`;
+        }
+
+        function updateActiveLanguageButton() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.lang-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to current language button
+            const activeButton = document.querySelector(`[data-lang="${currentLanguage}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function buildLanguageSelector() {
+            const selector = document.getElementById('languageSelector');
+            selector.innerHTML = '';
+            Object.keys(languageMeta).forEach(function (lang) {
+                const meta = languageMeta[lang] || { label: lang.toUpperCase(), title: lang.toUpperCase() };
+                const btn = document.createElement('button');
+                btn.className = 'lang-button';
+                btn.dataset.lang = lang;
+                btn.title = meta.title;
+                btn.textContent = meta.label;
+                btn.addEventListener('click', function () { switchLanguage(lang); });
+                selector.appendChild(btn);
+            });
+        }
+
+        // ==================== INITIALIZATION ====================
+        function initializePage() {
+            buildLanguageSelector();
+
+            // Check for saved language preference or detect browser language
+            const savedLanguage = localStorage.getItem('maintenancePageLanguage');
+
+            if (savedLanguage && savedLanguage in languageMeta) {
+                currentLanguage = savedLanguage;
+            } else {
+                currentLanguage = detectBrowserLanguage();
+            }
+
+            updateContent();
+            updateActiveLanguageButton();
+        }
+
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            defaultLanguage: "en"
+        };
+
+        // Add or remove a language here — the selector and detection update automatically.
+        const languageMeta = {
+            de: { label: "DE", title: "Deutsch" },
+            en: { label: "EN", title: "English" },
+            es: { label: "ES", title: "Español" },
+            fr: { label: "FR", title: "Français" },
+            pl: { label: "PL", title: "Polski" }
+        };
+        let currentLanguage = CONFIG.defaultLanguage;
+
+        // ==================== TRANSLATIONS ====================
+        const titles = {
+            en: "System Maintenance",
+            de: "Systemwartung",
+            pl: "Konserwacja Systemu",
+            fr: "Maintenance du Système",
+            es: "Mantenimiento del Sistema"
+        };
+
+        const messages = {
+            en: "WEBCON BPS is temporarily unavailable while we perform scheduled maintenance to improve your experience.",
+            de: "WEBCON BPS ist vorübergehend nicht verfügbar, während wir planmäßige Wartungsarbeiten durchführen, um Ihre Erfahrung zu verbessern.",
+            pl: "WEBCON BPS jest tymczasowo niedostępny podczas zaplanowanych prac konserwacyjnych mających na celu poprawę Państwa doświadczeń.",
+            fr: "WEBCON BPS est temporairement indisponible pendant que nous effectuons une maintenance programmée pour améliorer votre expérience.",
+            es: "WEBCON BPS no está disponible temporalmente mientras realizamos mantenimiento programado para mejorar su experiencia."
+        };
+
+        const completionDetails = {
+            en: "Expected completion: <strong>" + "2026-05-14 15:00 UTC" + "</strong>",
+            de: "Voraussichtlicher Abschluss: <strong>" + "2026-05-14 15:00 UTC" + "</strong>",
+            pl: "Przewidywane zakończenie: <strong>" + "2026-05-14 15:00 UTC" + "</strong>",
+            fr: "Achèvement prévu : <strong>" + "2026-05-14 15:00 UTC" + "</strong>",
+            es: "Finalización prevista: <strong>" + "2026-05-14 15:00 UTC" + "</strong>"
+        };
+
+        const contactInfo = {
+            en: "For urgent matters, please contact: support@company.com",
+            de: "Für dringende Angelegenheiten wenden Sie sich bitte an: support@company.com",
+            pl: "W pilnych sprawach prosimy o kontakt: support@company.com",
+            fr: "Pour les questions urgentes, veuillez contacter: support@company.com",
+            es: "Para asuntos urgentes, póngase en contacto con: support@company.com"
+        };
+
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+
+</html>
