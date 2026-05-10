@@ -1,0 +1,36 @@
+// These are sample data structures for the item list action buttons and their configuration, which are used in the form rule to show how to configure the buttons and execute them. The actual data structure might differ based on the implementation of the item list actions in the system.
+// These can be used by the AI to get a better context.
+dkr.itemListActions.ActionButtonDefinitionString = '[{\"ACB_ID\":23,\"ACB_Guid\":\"5f42ea31-037f-4840-a059-d878686e63ee\",\"ACB_Icon\":\"approvals_app\",\"DefaultName\":\"CorrectiveActions_MenuButton_1\",\"ActionTranslation\":\"Corrective action1  en-US translation\"},{\"ACB_ID\":24,\"ACB_Guid\":\"a0bb7355-c248-401a-a902-54fa3e128129\",\"ACB_Icon\":\"person_lightning\",\"DefaultName\":\"CorrectiveActions_MenuButton_2\",\"ActionTranslation\":\"Corrective action 2 en translation with annoying characters \\\\u0027\\\\u0022´`\\\\u0024\\\\u007b\\\\u005d\\\\u007d; \"},{\"ACB_ID\":25,\"ACB_Guid\":\"a25516d1-5853-4d96-9f84-4c362aba0bb2\",\"ACB_Icon\":\"archive\",\"DefaultName\":\"PreventiveActions_MenuButton_2 without translation\",\"ActionTranslation\":\"PreventiveActions_MenuButton_2 without translation\"}]';
+dkr.itemListActions.ItemListActionConfiguration = {
+    "812": [
+        {
+            "menuActionId": 23,
+            "isVisible": true,
+            "hideMenuAction": true
+        },
+        {
+            "menuActionId": 24,
+            "isVisible": true,
+            "hideMenuAction": true
+        },
+        {
+            "label": "Custom JS action",
+            "icon": "arrow_clockwise",
+            "isVisible": true,
+            "onClick": function () { alert("Custom action") }
+        }
+    ],
+    "817": [
+        {
+            "menuActionId": 25,
+            "isVisible": true,
+            "hideMenuAction": true
+        },
+        {
+            "label": "Custom JS action",
+            "icon": "arrow_clockwise",
+            "isVisible": true,
+            "onClick": function () { alert("Custom action") }
+        }
+    ]
+}
