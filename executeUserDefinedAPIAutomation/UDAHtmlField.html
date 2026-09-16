@@ -1,0 +1,56 @@
+<div>
+  <button id="id=" GetValuesFromUDA" type="button" onclick="executeGetValues()"
+    class="webcon-ui button-base button button--primary button--rounded button--medium button--icon-text toolbar-button__button"
+    style="margin-bottom:15px">Get values</button>
+  <button id="id=" GetValuesFromUDA" type="button" onclick="executeGetInputValues()"
+    class="webcon-ui button-base button button--primary button--rounded button--medium button--icon-text toolbar-button__button">Return input values </button>
+</div>
+<script>
+  InvokeRule(#{BRUX:1826:ID}#);
+  var udaEndpointAutomationTest = "/api/udef/db/1/automation/ValueTest";
+
+  window.executeGetValues = function () {
+    let endpoint = "/api/udef/db/1/automationTest";
+    let body = {
+      "ReturnUnsetValues": dkr.udaExecution.GetBoolValue('#{FLD:4306}#')
+    };
+
+    window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult);
+  }
+
+  window.executeGetInputValues = function () {
+    let endpoint = "/api/udef/db/1/automationTest";
+    let body = {
+      "ReturnUnsetValues": dkr.udaExecution.GetBoolValue('#{FLD:4306}#'),
+      "ReturnInputValues": true,
+      "TextInput": GetValue('#{FLD:4329}#'),
+      "DecimalInput": GetTypedValue('#{FLD:4328}#').value,
+      "DateValue": GetTypedValue('#{FLD:4332}#').value,
+      "DateTimeValue": GetTypedValue('#{FLD:4327}#').value,
+      "BoolTrueValue": dkr.udaExecution.GetBoolValue('#{FLD:4330}#'),
+      "BoolFalseValue": dkr.udaExecution.GetBoolValue('#{FLD:4331}#'),
+
+    };
+
+    // window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult, function (status, jsonResonse) { alert('Custom error handlng'); });
+    window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult);
+  }
+  window.setBodyFromUDAResult = function (jsonResponse) {
+    SetValue('#{FLD:4314}#', jsonResponse.Data["TextValue"]);
+    SetValue('#{FLD:4311}#', jsonResponse.Data["TextEmptyValue"]);
+    SetValue('#{FLD:4316}#', jsonResponse.Data["TextNullValue"]);
+    SetValue('#{FLD:4304}#', jsonResponse.Data["DecimalValue2Digits"]);
+    SetValue('#{FLD:4322}#', jsonResponse.Data["DecimalValue6Digits"]);
+    SetValue('#{FLD:4323}#', jsonResponse.Data["DecimalEmptyValue"]);
+    SetValue('#{FLD:4312}#', jsonResponse.Data["DecimalNullValue"]);
+    SetValue('#{FLD:4317}#', jsonResponse.Data["BooleanTrueValue"]);
+    SetValue('#{FLD:4313}#', jsonResponse.Data["BooleanFalseValue"]);
+    SetValue('#{FLD:4318}#', jsonResponse.Data["BooleanEmptyValue"]);
+    SetValue('#{FLD:4321}#', jsonResponse.Data["BooleanNullValue"]);
+    SetValue('#{FLD:4320}#', dkr.udaExecution.ParseDateTimeValue(jsonResponse.Data["DateValue"]));
+    SetValue('#{FLD:4315}#', dkr.udaExecution.ParseDateTimeValue(jsonResponse.Data["DateTimeValue"]));
+    SetValue('#{FLD:4310}#', dkr.udaExecution.ParseDateTimeValue(jsonResponse.Data["DateEmptyValue"]));
+    SetValue('#{FLD:4319}#', dkr.udaExecution.ParseDateTimeValue(jsonResponse.Data["DateNullValue"]));
+  }
+
+</script>
