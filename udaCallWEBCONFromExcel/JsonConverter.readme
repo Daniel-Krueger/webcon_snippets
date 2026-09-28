@@ -1,0 +1,2 @@
+Download JsonConverter.bas and import it into the workbook alongside FetchInstances.bas
+Tools → References → tick Microsoft Scripting Runtime (needed by VBA-JSON for its Dictionary type)

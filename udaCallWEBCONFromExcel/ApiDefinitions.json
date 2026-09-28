@@ -1,0 +1,605 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "User defined API",
+    "description": "User defined api schema",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/udef/db/{dbid}/automation/ValueTest": {
+      "post": {
+        "tags": [
+          "UDA API"
+        ],
+        "summary": "automationTest (1): Automation",
+        "parameters": [
+          {
+            "name": "dbid",
+            "in": "path",
+            "description": "Database ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ReturnUnsetValues": {
+                    "type": "boolean",
+                    "description": ""
+                  },
+                  "ReturnInputValues": {
+                    "type": "boolean",
+                    "description": ""
+                  },
+                  "DateValue": {
+                    "type": "string",
+                    "description": "",
+                    "format": "date-time"
+                  },
+                  "DateTimeValue": {
+                    "type": "string",
+                    "description": "",
+                    "format": "date-time"
+                  },
+                  "BoolTrueValue": {
+                    "type": "boolean",
+                    "description": ""
+                  },
+                  "TextInput": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "DecimalInput": {
+                    "type": "number",
+                    "description": ""
+                  },
+                  "BoolFalseValue": {
+                    "type": "boolean",
+                    "description": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Data": {
+                      "type": "object",
+                      "properties": {
+                        "TextEmptyValue": {
+                          "type": "string",
+                          "description": ""
+                        },
+                        "TextNullValue": {
+                          "type": "string",
+                          "description": ""
+                        },
+                        "DecimalEmptyValue": {
+                          "type": "number",
+                          "description": ""
+                        },
+                        "DecimalNullValue": {
+                          "type": "number",
+                          "description": ""
+                        },
+                        "DateValue": {
+                          "type": "string",
+                          "description": "",
+                          "format": "date-time"
+                        },
+                        "DateEmptyValue": {
+                          "type": "string",
+                          "description": "",
+                          "format": "date-time"
+                        },
+                        "DateNullValue": {
+                          "type": "string",
+                          "description": "",
+                          "format": "date-time"
+                        },
+                        "DecimalValue2Digits": {
+                          "type": "number",
+                          "description": ""
+                        },
+                        "TextValue": {
+                          "type": "string",
+                          "description": ""
+                        },
+                        "DateTimeValue": {
+                          "type": "string",
+                          "description": "",
+                          "format": "date-time"
+                        },
+                        "DecimalValue6Digits": {
+                          "type": "number",
+                          "description": ""
+                        },
+                        "BooleanTrueValue": {
+                          "type": "boolean",
+                          "description": ""
+                        },
+                        "BooleanFalseValue": {
+                          "type": "boolean",
+                          "description": ""
+                        },
+                        "BooleanEmptyValue": {
+                          "type": "boolean",
+                          "description": ""
+                        },
+                        "BooleanNullValue": {
+                          "type": "boolean",
+                          "description": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ],
+            "Cookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/udef/db/{dbid}/automation/Instances": {
+      "get": {
+        "tags": [
+          "UDA API"
+        ],
+        "summary": "Instances: DataSource",
+        "parameters": [
+          {
+            "name": "dbid",
+            "in": "path",
+            "description": "Database ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ID": {
+                            "type": "string"
+                          },
+                          "Instance number": {
+                            "type": "string"
+                          },
+                          "Step": {
+                            "type": "string"
+                          },
+                          "Assigned to": {
+                            "type": "string"
+                          },
+                          "TextValue": {
+                            "type": "string"
+                          },
+                          "DecimalValue": {
+                            "type": "string"
+                          },
+                          "DateValue": {
+                            "type": "string"
+                          },
+                          "DateTimeValue": {
+                            "type": "string"
+                          },
+                          "BooleanTrueValue": {
+                            "type": "string"
+                          },
+                          "BooleanFalseValue": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "description": "System.Data.DataTable"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Cookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/udef/db/{dbid}/automation/instanceHandling/{id}": {
+      "patch": {
+        "tags": [
+          "UDA API"
+        ],
+        "summary": "Instance Handling: ElementSave",
+        "parameters": [
+          {
+            "name": "dbid",
+            "in": "path",
+            "description": "Database ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Element ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "TextValue": {
+                    "type": "string"
+                  },
+                  "DecimalValue": {
+                    "type": "number"
+                  },
+                  "DateValue": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "DateTimeValue": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "BooleanTrueValue": {
+                    "type": "boolean"
+                  },
+                  "BooleanFalseValue": {
+                    "type": "boolean"
+                  },
+                  "Comment": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Data": {
+                      "type": "object",
+                      "properties": {
+                        "Id": {
+                          "type": "number"
+                        },
+                        "InstanceNumber": {
+                          "type": "string"
+                        },
+                        "Status": {
+                          "enum": [
+                            "MovedToNextStep",
+                            "Saved",
+                            "WaitingForOtherTasks",
+                            "Rollback",
+                            "Unknown"
+                          ],
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    },
+    "/api/udef/db/{dbid}/automation/instanceHandling": {
+      "post": {
+        "tags": [
+          "UDA API"
+        ],
+        "summary": "Instance Handling: ElementStart",
+        "parameters": [
+          {
+            "name": "dbid",
+            "in": "path",
+            "description": "Database ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "TextValue": {
+                    "type": "string"
+                  },
+                  "DecimalValue": {
+                    "type": "number"
+                  },
+                  "DateValue": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "DateTimeValue": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "BooleanTrueValue": {
+                    "type": "boolean"
+                  },
+                  "BooleanFalseValue": {
+                    "type": "boolean"
+                  },
+                  "Comment": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Data": {
+                      "type": "object",
+                      "properties": {
+                        "Id": {
+                          "type": "number"
+                        },
+                        "InstanceNumber": {
+                          "type": "string"
+                        },
+                        "Status": {
+                          "enum": [
+                            "MovedToNextStep",
+                            "Saved",
+                            "WaitingForOtherTasks",
+                            "Rollback",
+                            "Unknown"
+                          ],
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Description": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "Guid": {
+                      "type": "string",
+                      "description": "Error correlated guid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          { }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "Cookie": {
+        "type": "apiKey",
+        "name": "SessionId",
+        "in": "cookie"
+      }
+    }
+  }
+}
