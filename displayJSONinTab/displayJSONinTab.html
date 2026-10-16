@@ -1,0 +1,246 @@
+<script>
+window.displayJSONinTab = (function () {
+    'use strict';
+
+    // =========================================================================
+    // CONFIGURATION
+    // =========================================================================
+
+    /** Resolved from the SPA global; falls back to the browser's own language */
+    const LANG = (typeof G_BROWSER_LANGUAGE !== 'undefined' ? G_BROWSER_LANGUAGE : navigator.language);
+
+    /**
+     * internalName values to exclude from the list.
+     * Useful for hiding noisy system / binary fields that carry no readable value.
+     */
+    const SKIP_FIELDS = [
+        'MetaInfo', 'ContentTypeId',
+        '_EditMenuTableStart', '_EditMenuTableStart2', '_EditMenuTableEnd',
+        'LinkFilenameNoMenu', 'LinkFilename', 'LinkFilename2',
+        'DocIcon', 'ServerUrl', 'EncodedAbsUrl', 'BaseName', 'FileSizeDisplay',
+        'SelectTitle', 'SelectFilename', 'Edit', 'Combine', 'RepairDocument',
+        '_ModerationStatus','Content Version','_ComplianceFlags','_ComplianceTag','_ComplianceTagWrittenTime'
+        ,'_ComplianceTagUserId','_IsRecord','BSN','_Dirty','_Parsable'
+        ,'_StubFile','AccessPolicy','_VirusStatus','_VirusVendorID','_VirusInfo'
+        ,'_CommentFlags','_CommentCount','_LikeCount','AppAuthor','AppEditor'
+        ,'SMTotalSize','SMLastModifiedDate','SMTotalFileStreamSize','SMTotalFileCount','owshiddenversion'
+        ,'_UIVersion','InstanceID','Order','GUID','WorkflowVersion'
+        ,'WorkflowInstanceID','ParentVersionString','ParentLeafName','DocConcurrencyNumber','ParentUniqueId',''
+        ,'_ModerationComments','_SourceUrl','_SharedFileIndex','ComplianceAssetId','TemplateUrl','xd_ProgID'
+        ,'xd_Signature','_ShortcutUrl','_ShortcutSiteId','_ShortcutWebId','_ShortcutUniqueId','_HasCopyDestinations'
+        ,'_CopySource','Modified','Created','SortBehavior','FSObjType','PermMask'
+        ,'CheckedOutUserId','IsCheckedoutToLocal','CheckoutUser','UniqueId','SyncClientId','ProgId'
+        ,'ScopeId','VirusStatus','CheckedOutTitle','_CheckinComment','LinkCheckedOutTitle','_EditMenuTableStart'
+        ,'_EditMenuTableStart2','_EditMenuTableEnd','_Level','_IsCurrentVersion','ItemChildCount','FolderChildCount'
+        ,'Created_x0020_By','Modified_x0020_By','SMTotalFileStreamSize','File_x0020_Size','FSObjType'
+        ,'HTML_x0020_File_x0020_Type','_ListSchemaVersion','FileDirRef','Restricted','OriginatorId'
+        ,'ContentType','ContentVersion'
+    ];
+
+    // =========================================================================
+    // VALUE FORMATTING
+    // Returns null for values that should not be displayed.
+    // =========================================================================
+
+    function formatValue(value) {
+        if (value === null || value === undefined) return null;
+
+        // Booleans render as checkboxes; return a non-null sentinel so the field
+        // passes the visibility filter in render().
+        if (typeof value === 'boolean') return value ? 'true' : 'false';
+
+        if (typeof value === 'number') return value.toLocaleString(LANG);
+
+        if (typeof value === 'string') {
+            if (value.trim() === '') return null;
+            // ISO datetime: "2024-01-15T23:00:00" (no Z) or "2024-01-15T12:34:56Z"
+            if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+                try {
+                    if (!value.endsWith('Z')) {
+                        // No timezone marker → value is a UTC date field; show local date only
+                        return new Date(value + 'Z').toLocaleDateString(LANG);
+                    }
+                    // Has Z → real timestamp; show time unless it falls exactly on UTC midnight
+                    const d = new Date(value);
+                    const isDateOnly = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+                    return isDateOnly ? d.toLocaleDateString(LANG) : d.toLocaleString(LANG);
+                } catch (_) { /* fall through */ }
+            }
+            return value;
+        }
+
+        if (Array.isArray(value)) {
+            const joined = value
+                .map(item => (item && item.lookupValue != null ? String(item.lookupValue) : null))
+                .filter(Boolean)
+                .join(', ');
+            return joined || null;
+        }
+
+        if (typeof value === 'object') {
+            if ('lookupValue' in value) return value.lookupValue != null ? String(value.lookupValue) : null;
+            if ('StringValue' in value) return value.StringValue != null && value.StringValue !== '' ? value.StringValue : null;
+        }
+
+        const str = String(value);
+        return str.trim() || null;
+    }
+
+    // =========================================================================
+    // DOM HELPERS
+    // =========================================================================
+
+    function el(tag, className, attrs) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (attrs) Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+        return node;
+    }
+
+    function escAttr(str) {
+        return String(str).replace(/"/g, '&quot;');
+    }
+
+    const CHECKMARK_SVG =
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="M9.76497 3.20474C10.0661 3.48915 10.0797 3.96383 9.79526 4.26497L5.54526 8.76497C5.40613 8.91228 ' +
+        '5.21332 8.99703 5.01071 8.99993C4.8081 9.00282 4.61295 8.92361 4.46967 8.78033L2.21967 6.53033C1.92678 ' +
+        '6.23744 1.92678 5.76257 2.21967 5.46967C2.51256 5.17678 2.98744 5.17678 3.28033 5.46967L4.98463 ' +
+        '7.17397L8.70474 3.23503C8.98915 2.9339 9.46383 2.92033 9.76497 3.20474Z" fill="currentColor"></path>' +
+        '</svg>';
+
+    // =========================================================================
+    // CONTROL BUILDERS
+    // =========================================================================
+
+    function buildCheckboxControl(label, checked) {
+        const outerCls = 'webcon-ui checkbox checkbox--default-appearance checkbox--medium checkbox--no-padding checkbox-control' +
+            (checked ? ' checkbox--checked' : '');
+        const indicatorCls = 'webcon-ui checkbox__input-indicator' +
+            (checked ? ' checkbox__input-indicator--checked' : '');
+
+        const checkboxDiv = el('div', outerCls);
+        checkboxDiv.style.pointerEvents = 'none';
+
+        const input = el('input', 'webcon-ui checkbox__input', {
+            type:            'checkbox',
+            'aria-disabled': 'true',
+            tabindex:        '-1',
+            'aria-label':    escAttr(label),
+        });
+        if (checked) input.setAttribute('checked', '');
+
+        const indicator = el('div', indicatorCls);
+        if (checked) indicator.innerHTML = CHECKMARK_SVG;
+
+        checkboxDiv.appendChild(input);
+        checkboxDiv.appendChild(indicator);
+
+        const wrapper = el('div', 'checkbox__wrapper');
+        wrapper.appendChild(checkboxDiv);
+        return wrapper;
+    }
+
+    function buildTextareaControl(label, value) {
+        const multiline    = value.includes('\n') || value.length > 100;
+        const textareaSpan = el('span', 'webcon-ui textarea textarea--read-only textarea--medium textarea--outline textarea--resize-none form-control text-field');
+        const textarea     = el('textarea', 'webcon-ui', { readonly: '', 'aria-label': escAttr(label) });
+        textarea.style.paddingInlineEnd = '1rem';
+        textarea.style.height    = multiline ? 'auto' : '32px';
+        textarea.style.minHeight = '32px';
+        textarea.value = value;
+        textareaSpan.appendChild(textarea);
+        return textareaSpan;
+    }
+
+    // =========================================================================
+    // FIELD ROW
+    // =========================================================================
+
+    function buildField(field) {
+        const label  = field.displayName;
+        const isBool = typeof field.value === 'boolean';
+
+        const wrapper = el('div', 'main-panel__wrap-grid__wrapper', { id: 'SPMigration_' + field.internalName });
+
+        // Label column
+        const labelWrapper = el('div', 'inline-panel__grid-label__wrapper');
+        const labelPanel   = el('div', 'stylePanelWithoutStyles grid-template__panel attributeLabelStylePanel inline-panel__grid-label stylePanel');
+        const reqWrapper   = el('div', 'attributeLabelRequirednessWrapper');
+        const reqContent   = el('span', 'attributeLabelRequiredness__content');
+        const labelSpan    = el('span', 'attributeLabelDisplayName');
+        labelSpan.textContent = label;
+        reqContent.appendChild(labelSpan);
+        reqWrapper.appendChild(reqContent);
+        labelPanel.appendChild(reqWrapper);
+        labelWrapper.appendChild(labelPanel);
+
+        // Control column
+        const controlWrapper  = el('div', 'inline-panel--control form-field-control-wrapper inline-panel__grid-control');
+        const validationPanel = el('div', 'validation-error-panel grid-template__panel');
+        const stylePanel      = el('div', 'stylePanelWithoutStyles grid-template__panel stylePanel');
+
+        if (isBool) {
+            stylePanel.appendChild(buildCheckboxControl(label, field.value));
+        } else {
+            stylePanel.appendChild(buildTextareaControl(label, formatValue(field.value) ?? ''));
+        }
+
+        validationPanel.appendChild(stylePanel);
+        controlWrapper.appendChild(validationPanel);
+        wrapper.appendChild(labelWrapper);
+        wrapper.appendChild(controlWrapper);
+        return wrapper;
+    }
+
+    // =========================================================================
+    // RENDER
+    // =========================================================================
+
+    function render(jsonData) {
+        const anchor = document.getElementById('SharePointAnchor');
+        if (!anchor) {
+            console.warn('displayJSONinTab: #SharePointAnchor not found.');
+            return;
+        }
+
+        const skipSet = new Set(SKIP_FIELDS);
+
+        const fields = jsonData
+            .filter(f => !skipSet.has(f.internalName))
+            .sort((a, b) => a.displayName.localeCompare(b.displayName, LANG));
+
+        if (fields.length === 0) return;
+
+        const grid = el('div', 'main-panel main-panel__wrap-grid group');
+        fields.forEach(f => grid.appendChild(buildField(f)));
+
+        anchor.insertAdjacentElement('afterend', grid);
+    }
+
+    // =========================================================================
+    // PUBLIC API
+    // =========================================================================
+
+    /**
+     * Fetches the attachment metadata and renders it into the page.
+     * @param {number} dbId          - Database ID
+     * @param {number} attachmentId  - Attachment ID
+     */
+    function init(dbId, attachmentId) {
+        const url = '/attachments/db/' + dbId + '/preview/' + attachmentId;
+
+        fetch(url)
+            .then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(render)
+            .catch(function (err) {
+                console.error('displayJSONinTab: failed to load JSON –', err);
+            });
+    }
+    console.log("Display JSON in Tab logic loaded.")
+    return { init: init };
+})();
+</script>

@@ -7,19 +7,18 @@
 </div>
 <script>
   InvokeRule(#{BRUX:1826:ID}#);
-  var udaEndpointAutomationTest = "/api/udef/db/1/automation/ValueTest";
 
   window.executeGetValues = function () {
-    let endpoint = "/api/udef/db/1/automationTest";
+    var endpoint = "/api/udef/db/1/automation/ValueTest";
     let body = {
       "ReturnUnsetValues": dkr.udaExecution.GetBoolValue('#{FLD:4306}#')
     };
 
-    window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult);
+    window.dkr.udaExecution.executeUDAAutomation(endpoint, body, window.setBodyFromUDAResult);
   }
 
   window.executeGetInputValues = function () {
-    let endpoint = "/api/udef/db/1/automationTest";
+    var endpoint = "/api/udef/db/1/automation/ValueTest";
     let body = {
       "ReturnUnsetValues": dkr.udaExecution.GetBoolValue('#{FLD:4306}#'),
       "ReturnInputValues": true,
@@ -32,8 +31,8 @@
 
     };
 
-    // window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult, function (status, jsonResonse) { alert('Custom error handlng'); });
-    window.dkr.udaExecution.executeUDAAutomation(udaEndpointAutomationTest, body, window.setBodyFromUDAResult);
+    // window.dkr.udaExecution.executeUDAAutomation(endpoint, body, window.setBodyFromUDAResult, function (status, jsonResonse) { alert('Custom error handlng'); });
+    window.dkr.udaExecution.executeUDAAutomation(endpoint, body, window.setBodyFromUDAResult);
   }
   window.setBodyFromUDAResult = function (jsonResponse) {
     SetValue('#{FLD:4314}#', jsonResponse.Data["TextValue"]);
